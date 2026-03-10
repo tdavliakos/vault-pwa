@@ -882,16 +882,20 @@ function buildEntries() {
   allEntries = [];
   const cats = vaultData.categories || {};
   for (const [cat, info] of Object.entries(cats)) {
-    if (!info || typeof info !== 'object') continue;
-    const entries = info.entries || [];
+    // Skip non-object or corrupted keys
+    if (!info || typeof info !== 'object' || Array.isArray(info)) continue;
+    const entries = Array.isArray(info.entries) ? info.entries : [];
     for (const e of entries) {
-      allEntries.push({ entry: e, cat });
+      if (e && typeof e === 'object') allEntries.push({ entry: e, cat });
     }
     // Subcategories
     const subs = info.subcategories || {};
-    for (const [sub, subEntries] of Object.entries(subs)) {
-      for (const e of subEntries) {
-        allEntries.push({ entry: e, cat, sub });
+    if (typeof subs === 'object' && !Array.isArray(subs)) {
+      for (const [sub, subEntries] of Object.entries(subs)) {
+        if (!Array.isArray(subEntries)) continue;
+        for (const e of subEntries) {
+          if (e && typeof e === 'object') allEntries.push({ entry: e, cat, sub });
+        }
       }
     }
   }
@@ -930,7 +934,8 @@ function selectCat(cat) {
 
 function getEntryTitle(e) {
   return e.Title || e.ΕΠΩΝΥΜΙΑ || e['Domain Name'] || e.Service ||
-         e.Name  || e.APP || Object.values(e).find(v => v && !v.startsWith('_')) || '—';
+         e.Name  || e.APP ||
+         Object.values(e).find(v => v && typeof v === 'string' && !v.startsWith('_')) || '—';
 }
 
 function getEntrySubtitle(e) {
@@ -952,7 +957,7 @@ function filterEntries() {
   filteredEntries = allEntries.filter(({ entry: e, cat }) => {
     if (currentCat !== 'ALL' && cat !== currentCat) return false;
     if (!q) return true;
-    return Object.values(e).some(v => v && String(v).toLowerCase().includes(q));
+    return Object.values(e).some(v => v != null && String(v).toLowerCase().includes(q));
   });
   renderList();
 }
@@ -1028,11 +1033,12 @@ function openEntry(entry, cat, sub) {
 
   for (const key of orderedKeys) {
     const val = entry[key];
-    if (!val || !String(val).trim()) continue;
+    const valStr = val != null ? String(val) : '';
+    if (!valStr.trim()) continue;
 
     const isPw = pwFields.has(key) || key.toLowerCase().includes('pass') ||
                  key.toLowerCase().includes('secret') || key.toLowerCase().includes('key');
-    const isUrl = key === 'URL' || key === 'LINK' || String(val).startsWith('http');
+    const isUrl = key === 'URL' || key === 'LINK' || valStr.startsWith('http');
 
     const card = document.createElement('div');
     card.className = 'field-card';
@@ -1041,8 +1047,8 @@ function openEntry(entry, cat, sub) {
       card.innerHTML = `
         <div class="field-label">${escHtml(key)}</div>
         <div class="field-row">
-          <a class="field-value url-val" href="${escHtml(val)}" target="_blank"
-             onclick="return confirmUrl(event)">${escHtml(val)}</a>
+          <a class="field-value url-val" href="${escHtml(valStr)}" target="_blank"
+             onclick="return confirmUrl(event)">${escHtml(valStr)}</a>
           <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
         </div>`;
     } else if (isPw) {
@@ -1050,7 +1056,7 @@ function openEntry(entry, cat, sub) {
       card.innerHTML = `
         <div class="field-label">${escHtml(key)}</div>
         <div class="field-row">
-          <div class="field-value masked" id="${fieldId}" data-val="${escHtml(val)}">••••••••</div>
+          <div class="field-value masked" id="${fieldId}" data-val="${escHtml(valStr)}">••••••••</div>
           <button class="field-btn" onclick="toggleReveal('${fieldId}', this)" title="Εμφάνιση">👁</button>
           <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
         </div>`;
@@ -1058,7 +1064,7 @@ function openEntry(entry, cat, sub) {
       card.innerHTML = `
         <div class="field-label">${escHtml(key)}</div>
         <div class="field-row">
-          <div class="field-value">${escHtml(String(val))}</div>
+          <div class="field-value">${escHtml(valStr)}</div>
           <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
         </div>`;
     }
