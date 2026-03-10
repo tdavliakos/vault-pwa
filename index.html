@@ -675,6 +675,19 @@ function signInGoogle() {
   location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
 }
 
+function signInGoogleSilent() {
+  // Re-auth without account selector (for token refresh)
+  const params = new URLSearchParams({
+    client_id:     CLIENT_ID,
+    redirect_uri:  location.origin + location.pathname,
+    response_type: 'token',
+    scope:         SCOPE,
+    prompt:        'none',  // silent re-auth
+    login_hint:    localStorage.getItem('google_email') || '',
+  });
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+}
+
 function handleOAuthRedirect() {
   const hash = new URLSearchParams(location.hash.slice(1));
   if (hash.get('access_token')) {
@@ -699,7 +712,10 @@ function signOutGoogle() {
 function showPwSection() {
   document.getElementById('gdrive-section').style.display = 'none';
   document.getElementById('pw-section').style.display = 'block';
-  setStatus('Συνδεδεμένος με Google Drive ✓');
+  // Show token expiry info
+  const expiry = parseInt(localStorage.getItem('google_token_expiry') || '0');
+  const remaining = Math.max(0, Math.round((expiry - Date.now()) / 60000));
+  setStatus(`Συνδεδεμένος με Google Drive ✓  (token: ${remaining} λεπτά)`);
   setTimeout(() => document.getElementById('master-pw').focus(), 100);
 }
 
@@ -752,7 +768,14 @@ async function downloadVaultFile(fileId) {
     `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
     { headers: { Authorization: 'Bearer ' + googleToken } }
   );
-  if (!r.ok) throw new Error('Αδυναμία λήψης αρχείου');
+  if (r.status === 401) {
+    // Token expired — re-authenticate
+    localStorage.removeItem('google_token');
+    localStorage.removeItem('google_token_expiry');
+    googleToken = null;
+    throw new Error('Το Google token έληξε. Κλικ "Αλλαγή λογαριασμού" για επανασύνδεση.');
+  }
+  if (!r.ok) throw new Error(`Αδυναμία λήψης αρχείου (${r.status})`);
   return await r.arrayBuffer();
 }
 
@@ -829,9 +852,7 @@ async function doUnlock() {
   document.getElementById('btn-unlock').disabled = true;
   showLoading('Αποκρυπτογράφηση…');
   hideError();
-  // Clear old cache to force fresh download
-  localStorage.removeItem(CACHE_KEY);
-  localStorage.removeItem(CACHE_KEY + '_time');
+  // Don't clear cache yet — keep it as fallback if download fails
 
   try {
     // Always fetch fresh from Drive first, fall back to cache only if offline
