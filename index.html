@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vault">
+<title>Vault</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:         #0d0d0f;
+  --surface:    #141416;
+  --surface2:   #1c1c20;
+  --surface3:   #242428;
+  --accent:     #00c853;
+  --accent-dim: #003d18;
+  --accent-glow:rgba(0,200,83,0.15);
+  --text:       #f0f0f2;
+  --text2:      #9898a8;
+  --text3:      #55555f;
+  --border:     #2a2a30;
+  --danger:     #ff4444;
+  --radius:     14px;
+  --mono:       'DM Mono', monospace;
+  --sans:       'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  height: 100dvh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; flex-direction: column; height: 100dvh; }
+.screen.active { display: flex; }
+
+/* ── LOGIN SCREEN ── */
+#screen-login {
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,83,0.08) 0%, transparent 70%),
+              var(--bg);
+}
+
+.login-logo {
+  width: 72px; height: 72px;
+  background: var(--accent-dim);
+  border: 1.5px solid rgba(0,200,83,0.3);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 0 40px rgba(0,200,83,0.1);
+}
+
+.login-title {
+  font-size: 28px; font-weight: 600;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.login-sub {
+  font-size: 14px; color: var(--text2);
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.login-card {
+  width: 100%; max-width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.input-group { margin-bottom: 16px; }
+.input-label {
+  font-size: 11px; font-weight: 500;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+input[type="password"], input[type="text"], input[type="search"] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  padding: 13px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+input:focus { border-color: var(--accent); }
+input::placeholder { color: var(--text3); font-family: var(--sans); }
+
+.pw-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--text3); font-size: 18px;
+  cursor: pointer; padding: 4px;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 4px;
+}
+.btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-ghost {
+  width: 100%;
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-ghost:active { background: var(--surface3); }
+
+.login-error {
+  background: rgba(255,68,68,0.1);
+  border: 1px solid rgba(255,68,68,0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  font-size: 13px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  display: none;
+}
+
+.login-status {
+  font-size: 13px; color: var(--text2);
+  text-align: center; margin-top: 16px;
+  min-height: 20px;
+}
+
+/* ── MAIN SCREEN ── */
+#screen-main { background: var(--bg); }
+
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px 10px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.topbar-logo {
+  width: 32px; height: 32px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(0,200,83,0.25);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+
+.search-wrap {
+  flex: 1;
+  position: relative;
+}
+.search-wrap .icon {
+  position: absolute; left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3); font-size: 16px;
+  pointer-events: none;
+}
+.search-wrap input {
+  padding-left: 36px;
+  padding-top: 10px; padding-bottom: 10px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+.topbar-lock {
+  background: none; border: none;
+  color: var(--text3); font-size: 20px;
+  cursor: pointer; padding: 4px;
+  flex-shrink: 0;
+}
+
+/* ── CATEGORY TABS ── */
+.cat-scroll {
+  display: flex; gap: 6px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border);
+}
+.cat-scroll::-webkit-scrollbar { display: none; }
+
+.cat-pill {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text2);
+  font-size: 12px; font-weight: 500;
+  padding: 6px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.cat-pill.active {
+  background: var(--accent-dim);
+  border-color: rgba(0,200,83,0.4);
+  color: var(--accent);
+}
+
+/* ── ENTRY LIST ── */
+.entry-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.entry-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.entry-item:active { background: var(--surface2); border-color: var(--accent); }
+
+.entry-icon {
+  width: 38px; height: 38px;
+  background: var(--surface2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+
+.entry-info { flex: 1; min-width: 0; }
+.entry-title {
+  font-size: 14px; font-weight: 500;
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.entry-sub {
+  font-size: 12px; color: var(--text2);
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.entry-fav { color: #ffd700; font-size: 14px; flex-shrink: 0; }
+
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ── DETAIL SCREEN ── */
+#screen-detail {
+  background: var(--bg);
+}
+
+.detail-topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.btn-back {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--text);
+  font-size: 18px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.detail-title-wrap { flex: 1; min-width: 0; }
+.detail-entry-title {
+  font-size: 16px; font-weight: 600;
+  white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.detail-entry-cat {
+  font-size: 12px; color: var(--text2);
+}
+
+.detail-scroll {
+  flex: 1; overflow-y: auto;
+  padding: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.field-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  font-size: 10px; font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.field-row {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.field-value {
+  flex: 1;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+  word-break: break-all;
+  min-width: 0;
+}
+.field-value.masked { letter-spacing: 3px; color: var(--text2); }
+.field-value.url-val {
+  color: var(--accent);
+  text-decoration: none;
+  font-family: var(--sans);
+  font-size: 13px;
+}
+
+.field-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 16px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.field-btn:active { background: var(--accent-dim); color: var(--accent); }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text);
+  font-size: 13px; font-weight: 500;
+  padding: 10px 20px;
+  white-space: nowrap;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 999;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── LOADING OVERLAY ── */
+#loading {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100;
+  transition: opacity 0.3s;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#loading p { font-size: 14px; color: var(--text2); }
+
+/* ── BIOMETRIC PROMPT ── */
+#screen-biometric {
+  align-items: center; justify-content: center;
+  padding: 40px 24px;
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,200,83,0.06) 0%, transparent 70%),
+              var(--bg);
+}
+.bio-icon { font-size: 64px; margin-bottom: 20px; }
+.bio-title { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.bio-sub { font-size: 14px; color: var(--text2); text-align: center; margin-bottom: 40px; }
+.bio-btn {
+  background: var(--accent-dim);
+  border: 1.5px solid rgba(0,200,83,0.35);
+  border-radius: var(--radius);
+  color: var(--accent);
+  font-family: var(--sans);
+  font-size: 16px; font-weight: 600;
+  padding: 18px 48px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.bio-alt {
+  background: none; border: none;
+  color: var(--text3); font-size: 13px;
+  cursor: pointer; text-decoration: underline;
+}
+
+/* ── MISC ── */
+.section-header {
+  font-size: 11px; font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 12px 4px 6px;
+}
+
+.tag-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 4px;
+}
+.tag {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 11px; color: var(--text2);
+  padding: 3px 10px;
+}
+
+.notes-val {
+  font-size: 13px; color: var(--text2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.linked-row {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 4px;
+}
+.linked-chip {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.linked-chip:active { border-color: var(--accent); }
+.linked-chip-title { font-size: 13px; font-weight: 500; }
+.linked-chip-cat { font-size: 11px; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p id="loading-text">Φόρτωση…</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- SCREEN: LOGIN -->
+<div class="screen" id="screen-login">
+  <div class="login-logo">🔐</div>
+  <div class="login-title">Vault</div>
+  <div class="login-sub">Password Manager</div>
+
+  <div class="login-card">
+    <div id="gdrive-section">
+      <button class="btn-ghost" id="btn-gdrive-login" onclick="signInGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Σύνδεση με Google
+      </button>
+    </div>
+
+    <div id="pw-section" style="display:none">
+      <div class="input-group">
+        <label class="input-label">Master Password</label>
+        <div class="input-wrap">
+          <input type="password" id="master-pw" placeholder="Εισάγετε master password…"
+                 autocomplete="current-password" onkeydown="if(event.key==='Enter')doUnlock()">
+          <button class="pw-toggle" onclick="togglePw()">👁</button>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-unlock" onclick="doUnlock()">Άνοιγμα Vault</button>
+      <button class="btn-ghost" onclick="signOutGoogle()" style="margin-top:10px;font-size:13px">
+        ← Αλλαγή λογαριασμού
+      </button>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+    <div class="login-status" id="login-status"></div>
+  </div>
+</div>
+
+<!-- SCREEN: BIOMETRIC -->
+<div class="screen" id="screen-biometric">
+  <div class="bio-icon">👆</div>
+  <div class="bio-title">Ξεκλείδωμα</div>
+  <div class="bio-sub">Χρησιμοποίησε το δακτυλικό σου αποτύπωμα ή PIN για γρήγορη πρόσβαση</div>
+  <button class="bio-btn" onclick="doBiometric()">🔓 Ξεκλείδωμα</button>
+  <button class="bio-alt" onclick="showScreen('screen-login'); showPwSection()">Χρήση Master Password</button>
+</div>
+
+<!-- SCREEN: MAIN -->
+<div class="screen" id="screen-main">
+  <div class="topbar">
+    <div class="topbar-logo">🔐</div>
+    <div class="search-wrap">
+      <span class="icon">⌕</span>
+      <input type="search" id="search-input" placeholder="Αναζήτηση…"
+             oninput="filterEntries()" autocomplete="off" autocorrect="off">
+    </div>
+    <button class="topbar-lock" onclick="lockVault()" title="Κλείδωμα">🔒</button>
+  </div>
+
+  <div class="cat-scroll" id="cat-scroll"></div>
+
+  <div class="entry-list" id="entry-list"></div>
+</div>
+
+<!-- SCREEN: DETAIL -->
+<div class="screen" id="screen-detail">
+  <div class="detail-topbar">
+    <button class="btn-back" onclick="goBack()">‹</button>
+    <div class="detail-title-wrap">
+      <div class="detail-entry-title" id="det-title"></div>
+      <div class="detail-entry-cat" id="det-cat"></div>
+    </div>
+    <button class="field-btn" id="det-fav-btn" style="font-size:20px" title="Favorite"></button>
+  </div>
+  <div class="detail-scroll" id="detail-scroll"></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════
+const CLIENT_ID  = '342666465731-ra1slcsblprck74jvur2gs31fc7hueud.apps.googleusercontent.com';
+const SCOPE      = 'https://www.googleapis.com/auth/drive.readonly';
+const VAULT_EXT  = '.vault';
+const AUTO_LOCK  = 5 * 60 * 1000; // 5 min
+const CACHE_KEY  = 'vault_encrypted_cache';
+const SESSION_KEY= 'vault_session';
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let vaultData      = null;   // decrypted data
+let allEntries     = [];     // flat [{entry, cat}, ...]
+let filteredEntries= [];
+let currentCat     = 'ALL';
+let lockTimer      = null;
+let currentEntry   = null;
+let revealedFields = new Set();
+let googleToken    = null;
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+window.addEventListener('load', async () => {
+  hideLoading();
+
+  // Check if we have a live session (navigated back)
+  const sess = sessionStorage.getItem(SESSION_KEY);
+  if (sess && vaultData === null) {
+    try {
+      vaultData = JSON.parse(sess);
+      buildEntries();
+      showScreen('screen-main');
+      resetLockTimer();
+      return;
+    } catch(e) {}
+  }
+
+  // Check biometric availability
+  if (await hasBiometric() && localStorage.getItem('bio_enrolled')) {
+    showScreen('screen-biometric');
+    return;
+  }
+
+  showScreen('screen-login');
+
+  // Check if already signed in
+  const token = localStorage.getItem('google_token');
+  const expiry = parseInt(localStorage.getItem('google_token_expiry') || '0');
+  if (token && Date.now() < expiry) {
+    googleToken = token;
+    showPwSection();
+  }
+});
+
+// ══════════════════════════════════════════════════
+// GOOGLE AUTH  (implicit flow — no server needed)
+// ══════════════════════════════════════════════════
+function signInGoogle() {
+  const params = new URLSearchParams({
+    client_id:     CLIENT_ID,
+    redirect_uri:  location.origin + location.pathname,
+    response_type: 'token',
+    scope:         SCOPE,
+    prompt:        'select_account',
+  });
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+}
+
+function handleOAuthRedirect() {
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (hash.get('access_token')) {
+    googleToken = hash.get('access_token');
+    const expiry = Date.now() + parseInt(hash.get('expires_in') || '3600') * 1000;
+    localStorage.setItem('google_token', googleToken);
+    localStorage.setItem('google_token_expiry', expiry);
+    // Clean URL
+    history.replaceState(null, '', location.pathname);
+    showPwSection();
+  }
+}
+
+function signOutGoogle() {
+  localStorage.removeItem('google_token');
+  localStorage.removeItem('google_token_expiry');
+  googleToken = null;
+  document.getElementById('pw-section').style.display = 'none';
+  document.getElementById('gdrive-section').style.display = 'block';
+}
+
+function showPwSection() {
+  document.getElementById('gdrive-section').style.display = 'none';
+  document.getElementById('pw-section').style.display = 'block';
+  setStatus('Συνδεδεμένος με Google Drive ✓');
+  setTimeout(() => document.getElementById('master-pw').focus(), 100);
+}
+
+// Handle OAuth redirect on load
+handleOAuthRedirect();
+
+// ══════════════════════════════════════════════════
+// GOOGLE DRIVE — find & fetch .vault file
+// ══════════════════════════════════════════════════
+async function findVaultFile() {
+  const r = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=name+contains+'.vault'+and+trashed=false&fields=files(id,name,modifiedTime)&orderBy=modifiedTime+desc`,
+    { headers: { Authorization: 'Bearer ' + googleToken } }
+  );
+  if (!r.ok) throw new Error('Drive API error: ' + r.status);
+  const data = await r.json();
+  if (!data.files || data.files.length === 0)
+    throw new Error('Δεν βρέθηκε .vault αρχείο στο Google Drive');
+  return data.files[0]; // most recently modified
+}
+
+async function downloadVaultFile(fileId) {
+  const r = await fetch(
+    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+    { headers: { Authorization: 'Bearer ' + googleToken } }
+  );
+  if (!r.ok) throw new Error('Αδυναμία λήψης αρχείου');
+  return await r.arrayBuffer();
+}
+
+// ══════════════════════════════════════════════════
+// CRYPTO — matches vault.py exactly
+// PBKDF2-SHA256, 480000 iterations, Fernet
+// Format: salt(16) + fernet_token
+// ══════════════════════════════════════════════════
+async function deriveKey(password, salt) {
+  const enc      = new TextEncoder();
+  const keyMat   = await crypto.subtle.importKey('raw', enc.encode(password),
+                     'PBKDF2', false, ['deriveBits']);
+  const bits     = await crypto.subtle.deriveBits(
+    { name:'PBKDF2', hash:'SHA-256', salt, iterations:480000 }, keyMat, 256);
+  return new Uint8Array(bits);
+}
+
+function base64urlDecode(s) {
+  s = s.replace(/-/g,'+').replace(/_/g,'/');
+  while (s.length % 4) s += '=';
+  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+}
+
+async function decryptVault(arrayBuffer, password) {
+  const raw  = new Uint8Array(arrayBuffer);
+  const salt = raw.slice(0, 16);
+  // Fernet token starts at byte 16
+  // Fernet = base64url( version(1) + timestamp(8) + iv(16) + ciphertext + hmac(32) )
+  const keyBytes = await deriveKey(password, salt);
+
+  // Build Fernet-compatible key: signing_key(16) + encryption_key(16) — but Web Crypto
+  // uses raw 32-byte AES-CBC key. Fernet uses first 16 for HMAC-SHA256, last 16 for AES-CBC.
+  const fernetTokenB64 = new TextDecoder().decode(raw.slice(16));
+  const fernetRaw = base64urlDecode(fernetTokenB64.trim());
+
+  // fernetRaw: [0]=0x80 version, [1-8]=timestamp, [9-24]=IV(16), [25..n-32]=ciphertext, last 32=HMAC
+  if (fernetRaw[0] !== 0x80) throw new Error('Invalid Fernet token');
+  const iv         = fernetRaw.slice(9, 25);
+  const ciphertext = fernetRaw.slice(25, fernetRaw.length - 32);
+
+  // AES-CBC decrypt using last 16 bytes of derived key
+  const aesKey = await crypto.subtle.importKey(
+    'raw', keyBytes.slice(16), { name:'AES-CBC' }, false, ['decrypt']);
+  const plaintext = await crypto.subtle.decrypt({ name:'AES-CBC', iv }, aesKey, ciphertext);
+
+  // Remove PKCS7 padding
+  const bytes = new Uint8Array(plaintext);
+  const pad   = bytes[bytes.length - 1];
+  const json  = new TextDecoder().decode(bytes.slice(0, bytes.length - pad));
+  return JSON.parse(json);
+}
+
+// ══════════════════════════════════════════════════
+// UNLOCK
+// ══════════════════════════════════════════════════
+async function doUnlock() {
+  const pw = document.getElementById('master-pw').value;
+  if (!pw) return;
+
+  document.getElementById('btn-unlock').disabled = true;
+  showLoading('Αποκρυπτογράφηση…');
+  hideError();
+
+  try {
+    // Try to find vault on Drive
+    let vaultBuffer;
+    try {
+      setStatus('Εύρεση vault στο Drive…');
+      const file = await findVaultFile();
+      setStatus(`Λήψη ${file.name}…`);
+      vaultBuffer = await downloadVaultFile(file.id);
+      // Cache encrypted
+      localStorage.setItem(CACHE_KEY, arrayBufferToBase64(vaultBuffer));
+    } catch(e) {
+      // Try cache
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        vaultBuffer = base64ToArrayBuffer(cached);
+        setStatus('Χρήση cached αντιγράφου (offline)');
+      } else throw e;
+    }
+
+    setStatus('Αποκρυπτογράφηση…');
+    vaultData = await decryptVault(vaultBuffer, pw);
+
+    // Store session (in-memory only via sessionStorage)
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
+
+    // Offer biometric enrollment
+    if (await hasBiometric() && !localStorage.getItem('bio_enrolled')) {
+      offerBiometric(pw);
+    }
+
+    buildEntries();
+    showScreen('screen-main');
+    resetLockTimer();
+    hideLoading();
+    document.getElementById('master-pw').value = '';
+
+  } catch(e) {
+    hideLoading();
+    showError(e.message || 'Λάθος password ή σφάλμα');
+    document.getElementById('btn-unlock').disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════════════
+// BIOMETRIC (WebAuthn / platform authenticator)
+// ══════════════════════════════════════════════════
+async function hasBiometric() {
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch(e) { return false; }
+}
+
+async function doBiometric() {
+  try {
+    // We use biometric to unlock a stored encrypted master pw
+    const encPw = localStorage.getItem('bio_enc_pw');
+    if (!encPw) { showScreen('screen-login'); showPwSection(); return; }
+
+    const assertion = await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+
+    if (assertion) {
+      // Retrieve stored pw (simplified — in production use WebAuthn PRF extension)
+      const pw = atob(localStorage.getItem('bio_enc_pw') || '');
+      document.getElementById('master-pw').value = pw;
+      showScreen('screen-login');
+      showPwSection();
+      await doUnlock();
+    }
+  } catch(e) {
+    showScreen('screen-login');
+    showPwSection();
+  }
+}
+
+function offerBiometric(pw) {
+  // Store pw for biometric (base64 — not secure, just convenience)
+  // In production: use WebAuthn PRF extension for proper key derivation
+  localStorage.setItem('bio_enc_pw', btoa(pw));
+  localStorage.setItem('bio_enrolled', '1');
+}
+
+// ══════════════════════════════════════════════════
+// DATA — build flat entry list
+// ══════════════════════════════════════════════════
+function buildEntries() {
+  allEntries = [];
+  const cats = vaultData.categories || {};
+  for (const [cat, info] of Object.entries(cats)) {
+    if (!info || typeof info !== 'object') continue;
+    const entries = info.entries || [];
+    for (const e of entries) {
+      allEntries.push({ entry: e, cat });
+    }
+    // Subcategories
+    const subs = info.subcategories || {};
+    for (const [sub, subEntries] of Object.entries(subs)) {
+      for (const e of subEntries) {
+        allEntries.push({ entry: e, cat, sub });
+      }
+    }
+  }
+  buildCatTabs();
+  filterEntries();
+}
+
+function getCategories() {
+  if (!vaultData) return [];
+  return Object.keys(vaultData.categories || {}).filter(k =>
+    typeof vaultData.categories[k] === 'object' &&
+    vaultData.categories[k] !== null
+  );
+}
+
+function buildCatTabs() {
+  const scroll = document.getElementById('cat-scroll');
+  scroll.innerHTML = '';
+  const cats = ['ALL', ...getCategories()];
+  for (const cat of cats) {
+    const pill = document.createElement('div');
+    pill.className = 'cat-pill' + (cat === currentCat ? ' active' : '');
+    const count = cat === 'ALL' ? allEntries.length :
+      allEntries.filter(e => e.cat === cat).length;
+    pill.textContent = `${cat === 'ALL' ? '✦ Όλα' : cat}  ${count}`;
+    pill.onclick = () => selectCat(cat);
+    scroll.appendChild(pill);
+  }
+}
+
+function selectCat(cat) {
+  currentCat = cat;
+  buildCatTabs();
+  filterEntries();
+}
+
+function getEntryTitle(e) {
+  return e.Title || e.ΕΠΩΝΥΜΙΑ || e['Domain Name'] || e.Service ||
+         e.Name  || e.APP || Object.values(e).find(v => v && !v.startsWith('_')) || '—';
+}
+
+function getEntrySubtitle(e) {
+  return e.Username || e.User || e['Owner Email'] || e.Email ||
+         e.URL || e.LINK || '';
+}
+
+function getEntryIcon(cat) {
+  const icons = {
+    'WordPress Sites':'🌐', 'Hosting / cPanel':'🖥', 'WHM Login':'⚡',
+    'Domains':'🔗', 'VMs / Servers':'🖧', 'Services / Proxies':'🔀',
+    'Apps & Themes':'🎨', 'IT Support':'🔧', 'General':'📂',
+  };
+  return icons[cat] || '📂';
+}
+
+function filterEntries() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
+  filteredEntries = allEntries.filter(({ entry: e, cat }) => {
+    if (currentCat !== 'ALL' && cat !== currentCat) return false;
+    if (!q) return true;
+    return Object.values(e).some(v => v && String(v).toLowerCase().includes(q));
+  });
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('entry-list');
+  list.innerHTML = '';
+
+  if (filteredEntries.length === 0) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="icon">🔍</div>
+      <p>Δεν βρέθηκαν εγγραφές</p>
+    </div>`;
+    return;
+  }
+
+  for (const { entry: e, cat, sub } of filteredEntries) {
+    const title    = getEntryTitle(e);
+    const subtitle = getEntrySubtitle(e);
+    const isFav    = e._favorite || e['_favorite'];
+
+    const item = document.createElement('div');
+    item.className = 'entry-item';
+    item.innerHTML = `
+      <div class="entry-icon">${getEntryIcon(cat)}</div>
+      <div class="entry-info">
+        <div class="entry-title">${escHtml(title)}</div>
+        ${subtitle ? `<div class="entry-sub">${escHtml(subtitle)}</div>` : ''}
+      </div>
+      ${isFav ? '<div class="entry-fav">★</div>' : ''}
+    `;
+    item.onclick = () => openEntry(e, cat, sub);
+    list.appendChild(item);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// DETAIL VIEW
+// ══════════════════════════════════════════════════
+function openEntry(entry, cat, sub) {
+  currentEntry = { entry, cat, sub };
+  revealedFields.clear();
+  resetLockTimer();
+
+  document.getElementById('det-title').textContent = getEntryTitle(entry);
+  document.getElementById('det-cat').textContent =
+    sub ? `${cat}  ›  ${sub}` : cat;
+
+  const favBtn = document.getElementById('det-fav-btn');
+  favBtn.textContent = entry._favorite ? '★' : '☆';
+  favBtn.style.color = entry._favorite ? '#ffd700' : '';
+
+  const scroll = document.getElementById('detail-scroll');
+  scroll.innerHTML = '';
+
+  // Password-like fields to mask
+  const pwFields = new Set(['password','pass','Password','PASS','MFA','TOTP',
+    'extra pass','Extra Pass','EXTRA PASS','Security Questions','Answers']);
+
+  const skipFields = new Set(['_uid','_favorite','_pinned','_tags','_linked',
+    '_client','_client_cat','_favorite_ts','_pinned_ts','Tags','Notes']);
+
+  // Sort fields by priority
+  const fieldOrder = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','APP',
+    'URL','LINK','Username','User','ΧΡΗΣΤΗΣ','Owner Email','Email',
+    'Password','PASS','EXTRA PASS','MFA'];
+
+  const allKeys = Object.keys(entry).filter(k => !k.startsWith('_') && !skipFields.has(k));
+  const orderedKeys = [
+    ...fieldOrder.filter(k => allKeys.includes(k)),
+    ...allKeys.filter(k => !fieldOrder.includes(k))
+  ];
+
+  for (const key of orderedKeys) {
+    const val = entry[key];
+    if (!val || !String(val).trim()) continue;
+
+    const isPw = pwFields.has(key) || key.toLowerCase().includes('pass') ||
+                 key.toLowerCase().includes('secret') || key.toLowerCase().includes('key');
+    const isUrl = key === 'URL' || key === 'LINK' || String(val).startsWith('http');
+
+    const card = document.createElement('div');
+    card.className = 'field-card';
+
+    if (isUrl) {
+      card.innerHTML = `
+        <div class="field-label">${escHtml(key)}</div>
+        <div class="field-row">
+          <a class="field-value url-val" href="${escHtml(val)}" target="_blank"
+             onclick="return confirmUrl(event)">${escHtml(val)}</a>
+          <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
+        </div>`;
+    } else if (isPw) {
+      const fieldId = 'field_' + key.replace(/\s/g,'_');
+      card.innerHTML = `
+        <div class="field-label">${escHtml(key)}</div>
+        <div class="field-row">
+          <div class="field-value masked" id="${fieldId}" data-val="${escHtml(val)}">••••••••</div>
+          <button class="field-btn" onclick="toggleReveal('${fieldId}', this)" title="Εμφάνιση">👁</button>
+          <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <div class="field-label">${escHtml(key)}</div>
+        <div class="field-row">
+          <div class="field-value">${escHtml(String(val))}</div>
+          <button class="field-btn" onclick="copyField('${escHtml(key)}', this)" title="Copy">⎘</button>
+        </div>`;
+    }
+    scroll.appendChild(card);
+  }
+
+  // Tags
+  const tags = entry._tags || (entry.Tags ? entry.Tags.split(',').map(t=>t.trim()).filter(Boolean) : []);
+  if (tags.length > 0) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.innerHTML = `<div class="field-label">Tags</div>
+      <div class="tag-row">${tags.map(t=>`<span class="tag">${escHtml(t)}</span>`).join('')}</div>`;
+    scroll.appendChild(card);
+  }
+
+  // Notes
+  if (entry.Notes && entry.Notes.trim()) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.innerHTML = `<div class="field-label">Notes</div>
+      <div class="notes-val">${escHtml(entry.Notes)}</div>`;
+    scroll.appendChild(card);
+  }
+
+  // Client
+  if (entry._client && entry._client.trim()) {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.innerHTML = `<div class="field-label">👤 Client</div>
+      <div class="field-value">${escHtml(entry._client)}</div>`;
+    scroll.appendChild(card);
+  }
+
+  // Linked entries
+  const linked = entry._linked || [];
+  if (linked.length > 0) {
+    const resolved = linked.map(uid => findEntryByUid(uid)).filter(Boolean);
+    if (resolved.length > 0) {
+      const card = document.createElement('div');
+      card.className = 'field-card';
+      card.innerHTML = `<div class="field-label">🔗 Συνδεδεμένες Εγγραφές</div>
+        <div class="linked-row">
+          ${resolved.map(({ entry: le, cat: lcat }) => `
+            <div class="linked-chip" onclick="openEntry(${JSON.stringify(le).replace(/"/g,'&quot;')}, '${lcat}')">
+              <span>${getEntryIcon(lcat)}</span>
+              <div>
+                <div class="linked-chip-title">${escHtml(getEntryTitle(le))}</div>
+                <div class="linked-chip-cat">${escHtml(lcat)}</div>
+              </div>
+            </div>`).join('')}
+        </div>`;
+      scroll.appendChild(card);
+    }
+  }
+
+  showScreen('screen-detail');
+}
+
+function findEntryByUid(uid) {
+  return allEntries.find(({ entry: e }) => e._uid === uid) || null;
+}
+
+function toggleReveal(fieldId, btn) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  if (el.classList.contains('masked')) {
+    el.textContent = el.dataset.val;
+    el.classList.remove('masked');
+    btn.textContent = '🙈';
+    resetLockTimer();
+  } else {
+    el.textContent = '••••••••';
+    el.classList.add('masked');
+    btn.textContent = '👁';
+  }
+}
+
+function copyField(key, btn) {
+  const card = btn.closest('.field-card');
+  const el   = card.querySelector('.field-value, .url-val');
+  if (!el) return;
+  const text = el.dataset.val || el.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓';
+    btn.style.color = 'var(--accent)';
+    setTimeout(() => { btn.textContent = '⎘'; btn.style.color = ''; }, 1500);
+    showToast(`${key} αντιγράφηκε`);
+  }).catch(() => showToast('Σφάλμα αντιγραφής'));
+  resetLockTimer();
+}
+
+function confirmUrl(e) {
+  resetLockTimer();
+  return true;
+}
+
+function goBack() {
+  showScreen('screen-main');
+  resetLockTimer();
+}
+
+// ══════════════════════════════════════════════════
+// AUTO-LOCK
+// ══════════════════════════════════════════════════
+function resetLockTimer() {
+  clearTimeout(lockTimer);
+  lockTimer = setTimeout(lockVault, AUTO_LOCK);
+}
+
+function lockVault() {
+  clearTimeout(lockTimer);
+  vaultData = null;
+  allEntries = [];
+  sessionStorage.removeItem(SESSION_KEY);
+  revealedFields.clear();
+  currentEntry = null;
+
+  if (localStorage.getItem('bio_enrolled') && googleToken) {
+    showScreen('screen-biometric');
+  } else {
+    showScreen('screen-login');
+    if (googleToken) showPwSection();
+  }
+  showToast('🔒 Vault κλειδώθηκε');
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) resetLockTimer();
+});
+
+// ══════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text || 'Φόρτωση…';
+  document.getElementById('loading').classList.remove('hidden');
+}
+
+function hideLoading() {
+  document.getElementById('loading').classList.add('hidden');
+}
+
+function showError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('login-error').style.display = 'none';
+}
+
+function setStatus(msg) {
+  document.getElementById('login-status').textContent = msg;
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function togglePw() {
+  const inp = document.getElementById('master-pw');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function arrayBufferToBase64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+function base64ToArrayBuffer(b64) {
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i=0; i<bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr.buffer;
+}
+
+// Touch events for activity reset
+['touchstart','touchend','click'].forEach(ev =>
+  document.addEventListener(ev, () => { if(vaultData) resetLockTimer(); }, { passive:true })
+);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('./sw.js').catch(() => {})
+  );
+}
+</script>
+</body>
+</html>
