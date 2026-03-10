@@ -710,7 +710,7 @@ handleOAuthRedirect();
 // GOOGLE DRIVE — find & fetch .vault file
 // ══════════════════════════════════════════════════
 async function findVaultFile() {
-  // Search for all .vault files, prefer largest (most complete) one
+  // Search all .vault files
   const r = await fetch(
     `https://www.googleapis.com/drive/v3/files?q=name+contains+'.vault'+and+trashed=false&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=20`,
     { headers: { Authorization: 'Bearer ' + googleToken } }
@@ -720,17 +720,22 @@ async function findVaultFile() {
   if (!data.files || data.files.length === 0)
     throw new Error('Δεν βρέθηκε .vault αρχείο στο Google Drive');
 
-  // Filter out .bak files, keep only .vault
+  // Keep only .vault (not .bak)
   const vaultFiles = data.files.filter(f => f.name.endsWith('.vault'));
   if (vaultFiles.length === 0) throw new Error('Δεν βρέθηκε .vault αρχείο');
 
-  // Log all found files for debugging
-  vaultFiles.forEach(f => console.log(`[Vault PWA] Found: ${f.name} — ${(f.size/1024).toFixed(0)}KB — ${f.modifiedTime}`));
+  // Log all for debugging
+  vaultFiles.forEach(f => console.log(
+    `[Vault PWA] Found: ${f.name} — ${(f.size/1024).toFixed(0)}KB — ${f.modifiedTime}`
+  ));
 
-  // Pick the LARGEST file (most complete vault)
-  vaultFiles.sort((a, b) => (parseInt(b.size)||0) - (parseInt(a.size)||0));
-  console.log(`[Vault PWA] Using: ${vaultFiles[0].name} (${(vaultFiles[0].size/1024).toFixed(0)}KB)`);
-  return vaultFiles[0];
+  // Priority: prefer "passwords.vault" over "pass.vault" (more recent naming)
+  const preferred = vaultFiles.find(f => f.name === 'passwords.vault')
+                 || vaultFiles.find(f => f.name.startsWith('passwords'))
+                 || vaultFiles.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime))[0];
+
+  console.log(`[Vault PWA] Using: ${preferred.name} (${(preferred.size/1024).toFixed(0)}KB)`);
+  return preferred;
 }
 
 async function downloadVaultFile(fileId) {
@@ -815,6 +820,9 @@ async function doUnlock() {
   document.getElementById('btn-unlock').disabled = true;
   showLoading('Αποκρυπτογράφηση…');
   hideError();
+  // Clear old cache to force fresh download
+  localStorage.removeItem(CACHE_KEY);
+  localStorage.removeItem(CACHE_KEY + '_time');
 
   try {
     // Always fetch fresh from Drive first, fall back to cache only if offline
