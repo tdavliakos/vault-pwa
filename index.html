@@ -711,7 +711,7 @@ handleOAuthRedirect();
 // ══════════════════════════════════════════════════
 async function findVaultFile() {
   const r = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name+contains+'.vault'+and+trashed=false&fields=files(id,name,modifiedTime)&orderBy=modifiedTime+desc`,
+    `https://www.googleapis.com/drive/v3/files?q=name+contains+'.vault'+and+trashed=false&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc`,
     { headers: { Authorization: 'Bearer ' + googleToken } }
   );
   if (!r.ok) throw new Error('Drive API error: ' + r.status);
@@ -811,7 +811,9 @@ async function doUnlock() {
     try {
       setStatus('Εύρεση vault στο Drive…');
       const file = await findVaultFile();
-      setStatus(`Λήψη ${file.name} (${new Date(file.modifiedTime).toLocaleString('el')})…`);
+      const fileDate = new Date(file.modifiedTime).toLocaleString('el');
+      setStatus(`📁 ${file.name} — ${fileDate} — ${(file.size/1024).toFixed(0)}KB`);
+      console.log('[Vault PWA] File found:', file.name, file.id, file.modifiedTime, file.size + 'B');
       vaultBuffer = await downloadVaultFile(file.id);
       // Update cache with fresh data
       localStorage.setItem(CACHE_KEY, arrayBufferToBase64(vaultBuffer));
@@ -905,6 +907,10 @@ function offerBiometric(pw) {
 function buildEntries() {
   allEntries = [];
   const cats = vaultData.categories || {};
+  // Debug: log category entry counts
+  const dbg = Object.entries(cats).map(([c,i]) =>
+    `${c}: ${Array.isArray(i?.entries) ? i.entries.length : '?'}`).join(', ');
+  console.log('[Vault PWA] Categories:', dbg);
   for (const [cat, info] of Object.entries(cats)) {
     // Skip non-object or corrupted keys
     if (!info || typeof info !== 'object' || Array.isArray(info)) continue;
