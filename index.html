@@ -764,15 +764,17 @@ async function decryptVault(arrayBuffer, password) {
   try {
     plaintext = await crypto.subtle.decrypt({ name:'AES-CBC', iv }, aesKey, ciphertext);
   } catch(e) {
-    throw new Error('Λάθος master password');
+    // Wrong password OR wrong key derivation
+    throw new Error('Λάθος master password — έλεγξε Caps Lock');
   }
 
-  // Remove PKCS7 padding
-  const bytes = new Uint8Array(plaintext);
-  const pad   = bytes[bytes.length - 1];
-  if (pad < 1 || pad > 16) throw new Error('Invalid padding');
-  const json  = new TextDecoder().decode(bytes.slice(0, bytes.length - pad));
-  return JSON.parse(json);
+  // SubtleCrypto AES-CBC strips PKCS7 padding automatically
+  const json = new TextDecoder('utf-8').decode(plaintext);
+  try {
+    return JSON.parse(json);
+  } catch(e) {
+    throw new Error('Αποκρυπτογράφηση απέτυχε — έλεγξε το master password');
+  }
 }
 
 // ══════════════════════════════════════════════════
