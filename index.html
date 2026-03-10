@@ -764,19 +764,37 @@ async function findVaultFile() {
 }
 
 async function downloadVaultFile(fileId) {
-  const r = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    { headers: { Authorization: 'Bearer ' + googleToken } }
-  );
+  // Try primary download endpoint
+  let r;
+  try {
+    r = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { Authorization: 'Bearer ' + googleToken } }
+    );
+  } catch(networkErr) {
+    throw new Error('Σφάλμα δικτύου: ' + networkErr.message);
+  }
+
+  console.log('[Vault PWA] Download status:', r.status, r.statusText);
+
   if (r.status === 401) {
-    // Token expired — re-authenticate
     localStorage.removeItem('google_token');
     localStorage.removeItem('google_token_expiry');
     googleToken = null;
-    throw new Error('Το Google token έληξε. Κλικ "Αλλαγή λογαριασμού" για επανασύνδεση.');
+    throw new Error('Το Google token έληξε — κάνε ξανά login');
   }
-  if (!r.ok) throw new Error(`Αδυναμία λήψης αρχείου (${r.status})`);
-  return await r.arrayBuffer();
+  if (r.status === 403) {
+    throw new Error('Δεν επιτρέπεται η πρόσβαση (403) — έλεγξε permissions στο Google Cloud Console');
+  }
+  if (!r.ok) {
+    const body = await r.text().catch(()=>'');
+    throw new Error(`Download απέτυχε (${r.status}): ${body.slice(0,100)}`);
+  }
+
+  const buf = await r.arrayBuffer();
+  console.log('[Vault PWA] Downloaded', buf.byteLength, 'bytes');
+  if (buf.byteLength < 100) throw new Error('Το αρχείο φαίνεται κενό ή κατεστραμμένο');
+  return buf;
 }
 
 // ══════════════════════════════════════════════════
@@ -878,7 +896,8 @@ async function doUnlock() {
         setStatus('📴 Offline — χρήση cached αντιγράφου' + 
           (cacheTime ? ` (${new Date(cacheTime).toLocaleDateString('el')})` : ''));
       } else {
-        throw new Error('Δεν υπάρχει σύνδεση και δεν υπάρχει cached αντίγραφο');
+        // Show the actual error, not a generic message
+        throw e;
       }
     }
 
