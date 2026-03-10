@@ -737,28 +737,40 @@ function base64urlDecode(s) {
 async function decryptVault(arrayBuffer, password) {
   const raw  = new Uint8Array(arrayBuffer);
   const salt = raw.slice(0, 16);
-  // Fernet token starts at byte 16
-  // Fernet = base64url( version(1) + timestamp(8) + iv(16) + ciphertext + hmac(32) )
   const keyBytes = await deriveKey(password, salt);
 
-  // Build Fernet-compatible key: signing_key(16) + encryption_key(16) — but Web Crypto
-  // uses raw 32-byte AES-CBC key. Fernet uses first 16 for HMAC-SHA256, last 16 for AES-CBC.
-  const fernetTokenB64 = new TextDecoder().decode(raw.slice(16));
-  const fernetRaw = base64urlDecode(fernetTokenB64.trim());
+  // The Fernet token bytes (after the 16-byte salt) are ASCII base64url chars
+  // Convert bytes → ASCII string safely (no atob, no TextDecoder Unicode issues)
+  const tokenBytes = raw.slice(16);
+  let fernetTokenB64 = '';
+  for (let i = 0; i < tokenBytes.length; i++) {
+    fernetTokenB64 += String.fromCharCode(tokenBytes[i]);
+  }
+  fernetTokenB64 = fernetTokenB64.trim();
 
-  // fernetRaw: [0]=0x80 version, [1-8]=timestamp, [9-24]=IV(16), [25..n-32]=ciphertext, last 32=HMAC
-  if (fernetRaw[0] !== 0x80) throw new Error('Invalid Fernet token');
+  // Decode base64url → raw bytes
+  const fernetRaw = base64urlDecode(fernetTokenB64);
+
+  // Fernet format: version(1) + timestamp(8) + IV(16) + ciphertext(n) + HMAC(32)
+  if (fernetRaw[0] !== 0x80) throw new Error('Invalid Fernet token (bad version byte)');
   const iv         = fernetRaw.slice(9, 25);
   const ciphertext = fernetRaw.slice(25, fernetRaw.length - 32);
 
-  // AES-CBC decrypt using last 16 bytes of derived key
+  // AES-CBC: Fernet uses the LAST 16 bytes of the 32-byte derived key
   const aesKey = await crypto.subtle.importKey(
     'raw', keyBytes.slice(16), { name:'AES-CBC' }, false, ['decrypt']);
-  const plaintext = await crypto.subtle.decrypt({ name:'AES-CBC', iv }, aesKey, ciphertext);
+
+  let plaintext;
+  try {
+    plaintext = await crypto.subtle.decrypt({ name:'AES-CBC', iv }, aesKey, ciphertext);
+  } catch(e) {
+    throw new Error('Λάθος master password');
+  }
 
   // Remove PKCS7 padding
   const bytes = new Uint8Array(plaintext);
   const pad   = bytes[bytes.length - 1];
+  if (pad < 1 || pad > 16) throw new Error('Invalid padding');
   const json  = new TextDecoder().decode(bytes.slice(0, bytes.length - pad));
   return JSON.parse(json);
 }
