@@ -479,6 +479,21 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
   padding: 3px 10px;
 }
 
+.quick-copy-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 16px;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.quick-copy-btn:active { background: var(--accent-dim); color: var(--accent); }
+
 .notes-val {
   font-size: 13px; color: var(--text2);
   line-height: 1.6;
@@ -933,23 +948,41 @@ function selectCat(cat) {
 }
 
 function getEntryTitle(e) {
-  return e.Title || e.ΕΠΩΝΥΜΙΑ || e['Domain Name'] || e.Service ||
-         e.Name  || e.APP ||
-         Object.values(e).find(v => v && typeof v === 'string' && !v.startsWith('_')) || '—';
+  // Try known title fields first
+  const direct = e.Title || e.ΕΠΩΝΥΜΙΑ || e['Domain Name'] || e.Service ||
+                 e.Name  || e.APP || e['LOGIN WHM'] || e['Αλλαγη Server'];
+  if (direct) return direct;
+  // Fallback: first non-internal, non-UUID string value
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  for (const [k, v] of Object.entries(e)) {
+    if (k.startsWith('_')) continue;
+    if (k === 'Tags' || k === 'Notes') continue;
+    if (typeof v !== 'string' || !v.trim()) continue;
+    if (uuidRe.test(v.trim())) continue;
+    return v;
+  }
+  return '—';
 }
 
 function getEntrySubtitle(e) {
-  return e.Username || e.User || e['Owner Email'] || e.Email ||
-         e.URL || e.LINK || '';
+  return e.Username || e.User || e['ΧΡΗΣΤΗΣ'] || e['Owner Email'] || e.Email ||
+         e.URL || e.LINK || e['Public URL'] || e['C PANEL'] || '';
 }
 
 function getEntryIcon(cat) {
   const icons = {
     'WordPress Sites':'🌐', 'Hosting / cPanel':'🖥', 'WHM Login':'⚡',
     'Domains':'🔗', 'VMs / Servers':'🖧', 'Services / Proxies':'🔀',
-    'Apps & Themes':'🎨', 'IT Support':'🔧', 'General':'📂',
+    'Apps & Themes':'🎨', 'IT Support':'🔧', 'General':'📁',
   };
-  return icons[cat] || '📂';
+  return icons[cat] || '🔑';
+}
+
+function getEntryInitial(title, cat) {
+  const colors = ['#2d6a4f','#1d3557','#6a2d4f','#4f3d2d','#2d4f6a','#3d2d6a','#6a4f2d'];
+  const ch = (title || '?')[0].toUpperCase();
+  const idx = ch.charCodeAt(0) % colors.length;
+  return { letter: ch, color: colors[idx] };
 }
 
 function filterEntries() {
@@ -966,6 +999,14 @@ function renderList() {
   const list = document.getElementById('entry-list');
   list.innerHTML = '';
 
+  // Sort: favorites first, then alphabetical by title
+  filteredEntries.sort((a, b) => {
+    const af = a.entry._favorite ? 0 : 1;
+    const bf = b.entry._favorite ? 0 : 1;
+    if (af !== bf) return af - bf;
+    return getEntryTitle(a.entry).localeCompare(getEntryTitle(b.entry), 'el');
+  });
+
   if (filteredEntries.length === 0) {
     list.innerHTML = `<div class="empty-state">
       <div class="icon">🔍</div>
@@ -981,14 +1022,35 @@ function renderList() {
 
     const item = document.createElement('div');
     item.className = 'entry-item';
+    const ini = getEntryInitial(title, cat);
     item.innerHTML = `
-      <div class="entry-icon">${getEntryIcon(cat)}</div>
+      <div class="entry-icon" style="background:${ini.color};color:#fff;font-weight:600;font-size:17px;font-family:var(--sans)">${ini.letter}</div>
       <div class="entry-info">
         <div class="entry-title">${escHtml(title)}</div>
         ${subtitle ? `<div class="entry-sub">${escHtml(subtitle)}</div>` : ''}
       </div>
       ${isFav ? '<div class="entry-fav">★</div>' : ''}
     `;
+    // Quick copy password button
+    const pw = e.Password || e.PASS || e['EXTRA PASS'] ||
+               Object.entries(e).find(([k,v]) => k.toLowerCase().includes('pass') && v)?.[1];
+    if (pw) {
+      const cpBtn = document.createElement('button');
+      cpBtn.className = 'quick-copy-btn';
+      cpBtn.textContent = '⎘';
+      cpBtn.title = 'Copy password';
+      cpBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        navigator.clipboard.writeText(String(pw)).then(() => {
+          cpBtn.textContent = '✓';
+          cpBtn.style.color = 'var(--accent)';
+          setTimeout(() => { cpBtn.textContent = '⎘'; cpBtn.style.color = ''; }, 1500);
+          showToast('Password αντιγράφηκε');
+        });
+        resetLockTimer();
+      };
+      item.appendChild(cpBtn);
+    }
     item.onclick = () => openEntry(e, cat, sub);
     list.appendChild(item);
   }
