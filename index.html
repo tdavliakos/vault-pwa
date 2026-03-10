@@ -910,7 +910,8 @@ function buildEntries() {
     if (!info || typeof info !== 'object' || Array.isArray(info)) continue;
     const entries = Array.isArray(info.entries) ? info.entries : [];
     for (const e of entries) {
-      if (e && typeof e === 'object') allEntries.push({ entry: e, cat });
+      if (e && typeof e === 'object' && hasRealContent(e))
+        allEntries.push({ entry: e, cat });
     }
     // Subcategories
     const subs = info.subcategories || {};
@@ -918,7 +919,8 @@ function buildEntries() {
       for (const [sub, subEntries] of Object.entries(subs)) {
         if (!Array.isArray(subEntries)) continue;
         for (const e of subEntries) {
-          if (e && typeof e === 'object') allEntries.push({ entry: e, cat, sub });
+          if (e && typeof e === 'object' && hasRealContent(e))
+            allEntries.push({ entry: e, cat, sub });
         }
       }
     }
@@ -940,10 +942,12 @@ function buildCatTabs() {
   scroll.innerHTML = '';
   const cats = ['ALL', ...getCategories()];
   for (const cat of cats) {
-    const pill = document.createElement('div');
-    pill.className = 'cat-pill' + (cat === currentCat ? ' active' : '');
     const count = cat === 'ALL' ? allEntries.length :
       allEntries.filter(e => e.cat === cat).length;
+    // Skip empty categories (except ALL)
+    if (cat !== 'ALL' && count === 0) continue;
+    const pill = document.createElement('div');
+    pill.className = 'cat-pill' + (cat === currentCat ? ' active' : '');
     pill.textContent = `${cat === 'ALL' ? '✦ Όλα' : cat}  ${count}`;
     pill.onclick = () => selectCat(cat);
     scroll.appendChild(pill);
@@ -956,36 +960,60 @@ function selectCat(cat) {
   filterEntries();
 }
 
+function hasRealContent(e) {
+  // Entry must have at least one non-internal field with a real value
+  for (const [k, v] of Object.entries(e)) {
+    if (k.startsWith('_')) continue;
+    if (!v || !String(v).trim()) continue;
+    return true;
+  }
+  return false;
+}
+
 function getEntryTitle(e) {
-  // Priority title fields
-  const titleFields = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','APP',
-    'LOGIN WHM','Αλλαγη Server','ΛΟΓΑΡΙΑΣΜΟΣ','Account'];
+  // All known title fields across all categories
+  const titleFields = [
+    'Title',           // General
+    'ΕΠΩΝΥΜΙΑ',        // Hosting/cPanel
+    'Domain Name',     // Domains
+    'Service',         // Services/Proxies
+    'Name',            // VMs/Servers
+    'Apps',            // Apps & Themes
+    'ΔΙΑΧΕΙΡΙΣΗ',      // WordPress/IT Support
+    'LOGIN WHM',       // WHM Login
+    'Αλλαγή Server',   // Domains
+    'ΛΟΓΑΡΙΑΣΜΟΣ', 'Account',
+  ];
   for (const f of titleFields) {
     if (e[f] && typeof e[f] === 'string' && e[f].trim()) return e[f].trim();
   }
-  // Fallback: first short non-internal, non-UUID, non-URL string
+  // Smart fallback: first non-internal, non-UUID, non-URL, non-password string
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
+  const skipFields = new Set(['Tags','Notes','URL','LINK','C PANEL','FTP',
+    'Password','PASS','EXTRA PASS','MFA - TOP PASS','Security Questions','Answers',
+    'email codes','email account','API KEY | THEME SECURITY',
+    'USER1 PASS','USER2 PASS','HIDE BACKEND','BRUTE FORCE PROTECT']);
   for (const [k, v] of Object.entries(e)) {
     if (k.startsWith('_')) continue;
-    if (['Tags','Notes','URL','LINK','Password','PASS','Email'].includes(k)) continue;
+    if (skipFields.has(k)) continue;
     if (typeof v !== 'string' || !v.trim()) continue;
     if (uuidRe.test(v.trim())) continue;
-    if (v.startsWith('http')) continue;
-    return v.trim();
-  }
-  // Last resort: any non-UUID value
-  for (const [k, v] of Object.entries(e)) {
-    if (k.startsWith('_')) continue;
-    if (typeof v !== 'string' || !v.trim()) continue;
-    if (uuidRe.test(v.trim())) continue;
+    if (v.startsWith('http') || v.startsWith('ftp')) continue;
+    if (v.includes('@') && v.includes('.')) continue; // skip emails
     return v.trim();
   }
   return '—';
 }
 
 function getEntrySubtitle(e) {
-  return e.Username || e.User || e['ΧΡΗΣΤΗΣ'] || e['Owner Email'] || e.Email ||
-         e.URL || e.LINK || e['Public URL'] || e['C PANEL'] || '';
+  // Try URL/link first for most categories
+  const url = e.LINK || e.URL || e['Public URL'] || e['C PANEL'];
+  if (url && typeof url === 'string') {
+    try { return new URL(url).hostname; } catch(e2) { return url; }
+  }
+  return e.Username || e.User || e.USER || e.USER1 ||
+         e['Owner Email'] || e.Email || e.IP ||
+         e['IP (Public)'] || e['Backend Target'] || '';
 }
 
 function getEntryIcon(cat) {
@@ -1099,7 +1127,7 @@ function openEntry(entry, cat, sub) {
     'extra pass','Extra Pass','EXTRA PASS','Security Questions','Answers']);
 
   const skipFields = new Set(['_uid','_favorite','_pinned','_tags','_linked',
-    '_client','_client_cat','_favorite_ts','_pinned_ts','Tags','Notes']);
+    '_client','_client_cat','_favorite_ts','_pinned_ts']);
 
   // Sort fields by priority
   const fieldOrder = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','APP',
@@ -1152,6 +1180,15 @@ function openEntry(entry, cat, sub) {
     scroll.appendChild(card);
   }
 
+  // If nothing was rendered, show a hint
+  if (scroll.children.length === 0) {
+    scroll.innerHTML = `<div class="empty-state" style="padding:40px 20px">
+      <div class="icon">📭</div>
+      <p style="color:var(--text2)">Δεν βρέθηκαν πεδία για αυτή την εγγραφή</p>
+    </div>`;
+    return;
+  }
+
   // Tags
   const tags = entry._tags || (entry.Tags ? entry.Tags.split(',').map(t=>t.trim()).filter(Boolean) : []);
   if (tags.length > 0) {
@@ -1200,6 +1237,14 @@ function openEntry(entry, cat, sub) {
         </div>`;
       scroll.appendChild(card);
     }
+  }
+
+  // If nothing was rendered, show a note
+  if (scroll.children.length === 0) {
+    scroll.innerHTML = `<div class="empty-state" style="padding-top:40px">
+      <div class="icon">📭</div>
+      <p style="color:var(--text2)">Δεν υπάρχουν πεδία σε αυτή την εγγραφή</p>
+    </div>`;
   }
 
   showScreen('screen-detail');
