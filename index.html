@@ -581,6 +581,7 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
       <input type="search" id="search-input" placeholder="Αναζήτηση…"
              oninput="filterEntries()" autocomplete="off" autocorrect="off">
     </div>
+    <button class="topbar-lock" onclick="refreshVault()" title="Ανανέωση" id="btn-refresh">🔄</button>
     <button class="topbar-lock" onclick="lockVault()" title="Κλείδωμα">🔒</button>
   </div>
 
@@ -804,22 +805,29 @@ async function doUnlock() {
   hideError();
 
   try {
-    // Try to find vault on Drive
+    // Always fetch fresh from Drive first, fall back to cache only if offline
     let vaultBuffer;
+    let loadedFromCache = false;
     try {
       setStatus('Εύρεση vault στο Drive…');
       const file = await findVaultFile();
-      setStatus(`Λήψη ${file.name}…`);
+      setStatus(`Λήψη ${file.name} (${new Date(file.modifiedTime).toLocaleString('el')})…`);
       vaultBuffer = await downloadVaultFile(file.id);
-      // Cache encrypted
+      // Update cache with fresh data
       localStorage.setItem(CACHE_KEY, arrayBufferToBase64(vaultBuffer));
+      localStorage.setItem(CACHE_KEY + '_time', file.modifiedTime);
     } catch(e) {
-      // Try cache
+      // Offline fallback
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         vaultBuffer = base64ToArrayBuffer(cached);
-        setStatus('Χρήση cached αντιγράφου (offline)');
-      } else throw e;
+        const cacheTime = localStorage.getItem(CACHE_KEY + '_time');
+        loadedFromCache = true;
+        setStatus('📴 Offline — χρήση cached αντιγράφου' + 
+          (cacheTime ? ` (${new Date(cacheTime).toLocaleDateString('el')})` : ''));
+      } else {
+        throw new Error('Δεν υπάρχει σύνδεση και δεν υπάρχει cached αντίγραφο');
+      }
     }
 
     setStatus('Αποκρυπτογράφηση…');
@@ -827,6 +835,7 @@ async function doUnlock() {
 
     // Store session (in-memory only via sessionStorage)
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
+    if (loadedFromCache) showToast('📴 Offline mode — δεδομένα από cache');
 
     // Offer biometric enrollment
     if (await hasBiometric() && !localStorage.getItem('bio_enrolled')) {
@@ -948,18 +957,28 @@ function selectCat(cat) {
 }
 
 function getEntryTitle(e) {
-  // Try known title fields first
-  const direct = e.Title || e.ΕΠΩΝΥΜΙΑ || e['Domain Name'] || e.Service ||
-                 e.Name  || e.APP || e['LOGIN WHM'] || e['Αλλαγη Server'];
-  if (direct) return direct;
-  // Fallback: first non-internal, non-UUID string value
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  // Priority title fields
+  const titleFields = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','APP',
+    'LOGIN WHM','Αλλαγη Server','ΛΟΓΑΡΙΑΣΜΟΣ','Account'];
+  for (const f of titleFields) {
+    if (e[f] && typeof e[f] === 'string' && e[f].trim()) return e[f].trim();
+  }
+  // Fallback: first short non-internal, non-UUID, non-URL string
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
   for (const [k, v] of Object.entries(e)) {
     if (k.startsWith('_')) continue;
-    if (k === 'Tags' || k === 'Notes') continue;
+    if (['Tags','Notes','URL','LINK','Password','PASS','Email'].includes(k)) continue;
     if (typeof v !== 'string' || !v.trim()) continue;
     if (uuidRe.test(v.trim())) continue;
-    return v;
+    if (v.startsWith('http')) continue;
+    return v.trim();
+  }
+  // Last resort: any non-UUID value
+  for (const [k, v] of Object.entries(e)) {
+    if (k.startsWith('_')) continue;
+    if (typeof v !== 'string' || !v.trim()) continue;
+    if (uuidRe.test(v.trim())) continue;
+    return v.trim();
   }
   return '—';
 }
@@ -1235,6 +1254,33 @@ function goBack() {
 function resetLockTimer() {
   clearTimeout(lockTimer);
   lockTimer = setTimeout(lockVault, AUTO_LOCK);
+}
+
+async function refreshVault() {
+  if (!googleToken) return;
+  const btn = document.getElementById('btn-refresh');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  showToast('Ανανέωση από Drive…');
+  try {
+    const file = await findVaultFile();
+    const buf  = await downloadVaultFile(file.id);
+    localStorage.setItem(CACHE_KEY, arrayBufferToBase64(buf));
+    localStorage.setItem(CACHE_KEY + '_time', file.modifiedTime);
+    // Re-decrypt with session — ask for password if needed
+    const pw = prompt('Master Password για ανανέωση:');
+    if (!pw) return;
+    showLoading('Ανανέωση…');
+    vaultData = await decryptVault(buf, pw);
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
+    buildEntries();
+    hideLoading();
+    showToast(`✓ Ανανεώθηκε — ${new Date(file.modifiedTime).toLocaleString('el')}`);
+  } catch(e) {
+    hideLoading();
+    showToast('Σφάλμα: ' + e.message);
+  } finally {
+    if (btn) { btn.textContent = '🔄'; btn.disabled = false; }
+  }
 }
 
 function lockVault() {
