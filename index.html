@@ -814,7 +814,10 @@ async function deriveKey(password, salt) {
 function base64urlDecode(s) {
   s = s.replace(/-/g,'+').replace(/_/g,'/');
   while (s.length % 4) s += '=';
-  return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const bin = atob(s);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
 }
 
 async function decryptVault(arrayBuffer, password) {
@@ -822,14 +825,9 @@ async function decryptVault(arrayBuffer, password) {
   const salt = raw.slice(0, 16);
   const keyBytes = await deriveKey(password, salt);
 
-  // The Fernet token bytes (after the 16-byte salt) are ASCII base64url chars
-  // Convert bytes → ASCII string safely (no atob, no TextDecoder Unicode issues)
+  // The Fernet token bytes are ASCII — safe to use TextDecoder
   const tokenBytes = raw.slice(16);
-  let fernetTokenB64 = '';
-  for (let i = 0; i < tokenBytes.length; i++) {
-    fernetTokenB64 += String.fromCharCode(tokenBytes[i]);
-  }
-  fernetTokenB64 = fernetTokenB64.trim();
+  const fernetTokenB64 = new TextDecoder('ascii').decode(tokenBytes).trim();
 
   // Decode base64url → raw bytes
   const fernetRaw = base64urlDecode(fernetTokenB64);
