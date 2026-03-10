@@ -1053,12 +1053,18 @@ function renderList() {
   list.innerHTML = '';
 
   // Sort: favorites first, then alphabetical by title
-  filteredEntries.sort((a, b) => {
+  // Pre-compute titles to avoid repeated calls in comparator
+  const withTitles = filteredEntries.map(item => ({
+    ...item,
+    _title: getEntryTitle(item.entry) || ''
+  }));
+  withTitles.sort((a, b) => {
     const af = a.entry._favorite ? 0 : 1;
     const bf = b.entry._favorite ? 0 : 1;
     if (af !== bf) return af - bf;
-    return getEntryTitle(a.entry).localeCompare(getEntryTitle(b.entry), 'el');
+    return a._title.localeCompare(b._title, 'el');
   });
+  filteredEntries = withTitles;
 
   if (filteredEntries.length === 0) {
     list.innerHTML = `<div class="empty-state">
