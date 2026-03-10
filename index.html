@@ -710,32 +710,41 @@ handleOAuthRedirect();
 // GOOGLE DRIVE — find & fetch .vault file
 // ══════════════════════════════════════════════════
 async function findVaultFile() {
-  // Search all .vault files
+  // Drive API searches ALL folders automatically with no parent filter
+  // This finds files in any subfolder including Passwords_backups
+  const q = encodeURIComponent("name='passwords.vault' and trashed=false");
   const r = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=name+contains+'.vault'+and+trashed=false&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=20`,
+    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime,size,parents)&orderBy=modifiedTime+desc&pageSize=10`,
     { headers: { Authorization: 'Bearer ' + googleToken } }
   );
   if (!r.ok) throw new Error('Drive API error: ' + r.status);
   const data = await r.json();
-  if (!data.files || data.files.length === 0)
-    throw new Error('Δεν βρέθηκε .vault αρχείο στο Google Drive');
 
-  // Keep only .vault (not .bak)
-  const vaultFiles = data.files.filter(f => f.name.endsWith('.vault'));
-  if (vaultFiles.length === 0) throw new Error('Δεν βρέθηκε .vault αρχείο');
-
-  // Log all for debugging
-  vaultFiles.forEach(f => console.log(
-    `[Vault PWA] Found: ${f.name} — ${(f.size/1024).toFixed(0)}KB — ${f.modifiedTime}`
+  // Log all found
+  (data.files||[]).forEach(f => console.log(
+    `[Vault PWA] Found: ${f.name} — ${(parseInt(f.size)||0/1024).toFixed(0)}KB — ${f.modifiedTime}`
   ));
 
-  // Priority: prefer "passwords.vault" over "pass.vault" (more recent naming)
-  const preferred = vaultFiles.find(f => f.name === 'passwords.vault')
-                 || vaultFiles.find(f => f.name.startsWith('passwords'))
-                 || vaultFiles.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime))[0];
+  if (data.files && data.files.length > 0) {
+    // Pick most recently modified
+    data.files.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime));
+    console.log(`[Vault PWA] Using: ${data.files[0].name} modified ${data.files[0].modifiedTime}`);
+    return data.files[0];
+  }
 
-  console.log(`[Vault PWA] Using: ${preferred.name} (${(preferred.size/1024).toFixed(0)}KB)`);
-  return preferred;
+  // Fallback: search any .vault file
+  const q2 = encodeURIComponent("name contains '.vault' and trashed=false");
+  const r2 = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${q2}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=20`,
+    { headers: { Authorization: 'Bearer ' + googleToken } }
+  );
+  const data2 = await r2.json();
+  const vaultFiles = (data2.files||[]).filter(f => f.name.endsWith('.vault'));
+  (vaultFiles).forEach(f => console.log(`[Vault PWA] Fallback found: ${f.name} — ${f.modifiedTime}`));
+
+  if (vaultFiles.length === 0) throw new Error('Δεν βρέθηκε passwords.vault στο Google Drive');
+  vaultFiles.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime));
+  return vaultFiles[0];
 }
 
 async function downloadVaultFile(fileId) {
@@ -1344,7 +1353,7 @@ async function refreshVault() {
     localStorage.setItem(CACHE_KEY, arrayBufferToBase64(buf));
     localStorage.setItem(CACHE_KEY + '_time', file.modifiedTime);
     // Re-decrypt with session — ask for password if needed
-    const pw = prompt('Master Password για ανανέωση:');
+    const pw = window.prompt('Master Password για ανανέωση:');
     if (!pw) return;
     showLoading('Ανανέωση…');
     vaultData = await decryptVault(buf, pw);
