@@ -11,569 +11,176 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
 <style>
 :root {
-  --bg:          #0a0a0a;
-  --surface:     #111111;
-  --surface2:    #1a1a1a;
-  --surface3:    #222222;
-  --accent:      #00c853;
-  --accent-dim:  #0a2a14;
-  --accent-glow: rgba(0,200,83,0.12);
-  --text:        #eeeeee;
-  --text2:       #777777;
-  --text3:       #404040;
-  --border:      #2a2a2a;
-  --border-soft: #1e1e1e;
-  --danger:      #e05555;
-  --warn:        #c49a1a;
-  --radius:      14px;
-  --mono:        'DM Mono', monospace;
-  --sans:        'DM Sans', sans-serif;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --bg:#0a0a0a; --surface:#111111; --surface2:#1a1a1a; --surface3:#222222;
+  --accent:#00c853; --accent-dim:#0a2a14; --accent-glow:rgba(0,200,83,.12);
+  --text:#eeeeee; --text2:#777777; --text3:#404040;
+  --border:#2a2a2a; --border-soft:#1e1e1e;
+  --danger:#e05555; --warn:#c49a1a;
+  --radius:14px; --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
 }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;user-select:none;overscroll-behavior:none}
+.screen{display:none;flex-direction:column;height:100dvh;position:absolute;inset:0;will-change:transform,opacity}
+.screen.active{display:flex}
+.screen.anim-si{animation:slideIn .28s cubic-bezier(.32,.72,0,1) forwards}
+.screen.anim-so{animation:slideOut .24s cubic-bezier(.32,.72,0,1) forwards}
+.screen.anim-fi{animation:fadeIn .2s ease forwards}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(40%);opacity:0}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
 
-* { box-sizing: border-box; margin: 0; padding: 0;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none; }
+/* LOGIN */
+#screen-login{align-items:center;justify-content:center;padding:32px 24px;background:radial-gradient(ellipse 80% 55% at 50% -5%,rgba(0,200,83,.09) 0%,transparent 65%),var(--bg)}
+.login-logo{width:68px;height:68px;background:var(--accent-dim);border:1.5px solid rgba(0,200,83,.25);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:20px;box-shadow:0 0 48px rgba(0,200,83,.08)}
+.login-title{font-size:26px;font-weight:600;letter-spacing:-.5px;margin-bottom:5px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:36px;text-align:center}
+.login-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+.input-group{margin-bottom:14px}
+.input-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px;display:block}
+.input-wrap{position:relative}
+input[type="password"],input[type="text"],input[type="search"]{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:15px;padding:13px 42px 13px 14px;outline:none;transition:border-color .18s;-webkit-appearance:none;appearance:none}
+input:focus{border-color:rgba(0,200,83,.5)}
+input::placeholder{color:var(--text3);font-family:var(--sans)}
+.pw-toggle{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);font-size:17px;cursor:pointer;padding:5px;display:flex;align-items:center}
+.btn-primary{width:100%;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:var(--sans);font-size:15px;font-weight:600;padding:14px;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:4px}
+.btn-primary:active{transform:scale(.98);opacity:.85}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-ghost{width:100%;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:10px;font-family:var(--sans);font-size:13px;font-weight:500;padding:12px;cursor:pointer;transition:background .15s;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-ghost:active{background:var(--surface3)}
+.login-error{background:rgba(224,85,85,.1);border:1px solid rgba(224,85,85,.25);border-radius:9px;color:#ff7070;font-size:13px;padding:10px 14px;margin-top:12px;display:none;line-height:1.5}
+.login-status{font-size:11px;color:var(--text3);text-align:center;margin-top:12px;min-height:16px}
 
-html, body {
-  font-family: var(--sans);
-  background: var(--bg);
-  color: var(--text);
-  height: 100dvh;
-  overflow: hidden;
-  user-select: none;
-  overscroll-behavior: none;
-}
+/* TOPBAR */
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 14px 9px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;padding-top:calc(10px + var(--safe-t))}
+.topbar-logo{width:30px;height:30px;background:var(--accent-dim);border:1px solid rgba(0,200,83,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.search-wrap{flex:1;position:relative}
+.search-wrap .s-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.search-wrap input{padding:9px 34px 9px 33px;font-size:14px;border-radius:9px;font-family:var(--sans)}
+.search-clear{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:var(--surface3);border:none;color:var(--text3);width:18px;height:18px;border-radius:50%;font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center}
+.search-clear.visible{display:flex}
+.topbar-btn{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:5px;flex-shrink:0;border-radius:7px;transition:color .15s,background .15s;width:34px;height:34px;display:flex;align-items:center;justify-content:center}
+.topbar-btn:active{background:var(--surface2);color:var(--text)}
 
-/* ══ SCREENS & TRANSITIONS ══════════════════════ */
-.screen {
-  display: none; flex-direction: column;
-  height: 100dvh; position: absolute;
-  inset: 0; will-change: transform, opacity;
-}
-.screen.active { display: flex; }
+/* LOCK BANNER */
+#lock-banner{background:rgba(196,154,26,.12);border-bottom:1px solid rgba(196,154,26,.2);color:var(--warn);font-size:12px;font-weight:500;padding:6px 14px;text-align:center;display:none;flex-shrink:0;animation:pulseW 1s ease infinite alternate}
+#lock-banner.show{display:block}
+@keyframes pulseW{from{opacity:.7}to{opacity:1}}
 
-/* slide-in from right */
-.screen.slide-in {
-  animation: slideIn 0.28s cubic-bezier(0.32,0.72,0,1) forwards;
-}
-/* slide-out to right */
-.screen.slide-out {
-  animation: slideOut 0.24s cubic-bezier(0.32,0.72,0,1) forwards;
-}
-/* fade-in for modals */
-.screen.fade-in {
-  animation: fadeIn 0.22s ease forwards;
-}
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
-}
-@keyframes slideOut {
-  from { transform: translateX(0); opacity: 1; }
-  to   { transform: translateX(40%); opacity: 0; }
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.97); }
-  to   { opacity: 1; transform: scale(1); }
-}
+/* VAULT INFO */
+.vault-info-row{display:flex;align-items:center;gap:6px;padding:5px 14px;flex-shrink:0;border-bottom:1px solid var(--border-soft)}
+.vault-sync-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.vault-sync-txt{font-size:10px;color:var(--text3)}
 
-/* ══ LOGIN SCREEN ════════════════════════════════ */
-#screen-login {
-  align-items: center; justify-content: center;
-  padding: 32px 24px;
-  background:
-    radial-gradient(ellipse 80% 55% at 50% -5%,
-      rgba(0,200,83,0.09) 0%, transparent 65%),
-    var(--bg);
-}
+/* CAT PILLS */
+.cat-scroll{display:flex;gap:5px;padding:9px 12px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-pill{background:var(--surface2);border:1px solid var(--border);border-radius:99px;color:var(--text2);font-size:11px;font-weight:500;padding:5px 12px;white-space:nowrap;cursor:pointer;transition:all .15s;flex-shrink:0;display:flex;align-items:center;gap:5px}
+.cat-pill .pcount{background:var(--surface3);border-radius:99px;font-size:10px;padding:1px 5px;color:var(--text3);transition:all .15s}
+.cat-pill.active{background:var(--accent-dim);border-color:rgba(0,200,83,.35);color:var(--accent)}
+.cat-pill.active .pcount{background:rgba(0,200,83,.15);color:var(--accent)}
 
-.login-logo {
-  width: 68px; height: 68px;
-  background: var(--accent-dim);
-  border: 1.5px solid rgba(0,200,83,0.25);
-  border-radius: 18px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 30px; margin-bottom: 20px;
-  box-shadow: 0 0 48px rgba(0,200,83,0.08);
-}
-.login-title {
-  font-size: 26px; font-weight: 600;
-  letter-spacing: -0.5px; margin-bottom: 5px;
-}
-.login-sub {
-  font-size: 13px; color: var(--text2);
-  margin-bottom: 36px; text-align: center;
-}
-.login-card {
-  width: 100%; max-width: 360px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-}
+/* ENTRY LIST */
+#ptr-indicator{text-align:center;font-size:12px;color:var(--text3);height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:5px}
+.entry-list{flex:1;overflow-y:auto;padding:8px 10px calc(8px + var(--safe-b));-webkit-overflow-scrolling:touch}
+.list-shdr{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 4px 4px}
+.entry-item{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:11px;margin-bottom:4px;cursor:pointer;transition:border-color .15s,background .12s}
+.entry-item:active{background:var(--surface2);border-color:rgba(0,200,83,.25)}
+.entry-avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;font-family:var(--sans)}
+.entry-info{flex:1;min-width:0}
+.entry-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-sub{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.entry-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.badge-fav{color:#f0c040;font-size:12px;margin-right:2px}
+.qcopy{background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text3);font-size:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+.qcopy:active{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,200,83,.3)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .es-icon{font-size:44px;margin-bottom:12px}
+.empty-state p{font-size:14px;line-height:1.7}
 
-/* ══ INPUTS ══════════════════════════════════════ */
-.input-group { margin-bottom: 14px; }
-.input-label {
-  font-size: 10px; font-weight: 600;
-  color: var(--text3); text-transform: uppercase;
-  letter-spacing: 0.9px; margin-bottom: 7px; display: block;
-}
-.input-wrap { position: relative; }
-input[type="password"], input[type="text"], input[type="search"] {
-  width: 100%; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 10px;
-  color: var(--text); font-family: var(--mono); font-size: 15px;
-  padding: 13px 42px 13px 14px; outline: none;
-  transition: border-color 0.18s;
-  -webkit-appearance: none; appearance: none;
-}
-input:focus { border-color: rgba(0,200,83,0.5); }
-input::placeholder { color: var(--text3); font-family: var(--sans); }
-.pw-toggle {
-  position: absolute; right: 11px; top: 50%;
-  transform: translateY(-50%);
-  background: none; border: none; color: var(--text3);
-  font-size: 17px; cursor: pointer; padding: 5px;
-  display: flex; align-items: center;
-}
+/* DETAIL */
+#screen-detail{background:var(--bg)}
+.detail-topbar{display:flex;align-items:center;gap:11px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;padding-top:calc(10px + var(--safe-t))}
+.btn-back{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:20px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.btn-back:active{background:var(--surface3)}
+.detail-title-wrap{flex:1;min-width:0}
+.detail-entry-title{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.detail-entry-cat{font-size:11px;color:var(--text2);margin-top:1px}
+.detail-scroll{flex:1;overflow-y:auto;padding:12px 12px calc(16px + var(--safe-b));-webkit-overflow-scrolling:touch}
+.field-card{background:var(--surface);border:1px solid var(--border-soft);border-radius:11px;padding:12px 14px;margin-bottom:6px}
+.field-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:7px}
+.field-row{display:flex;align-items:center;gap:7px}
+.field-value{flex:1;font-family:var(--mono);font-size:14px;color:var(--text);word-break:break-all;min-width:0;line-height:1.4}
+.field-value.masked{font-size:20px;letter-spacing:2px;color:var(--text3);line-height:1}
+.field-value.url-val{color:var(--accent);text-decoration:none;font-family:var(--sans);font-size:13px}
+.field-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:15px;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.field-btn:active,.field-btn.copied{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,200,83,.3)}
 
-/* ══ BUTTONS ═════════════════════════════════════ */
-.btn-primary {
-  width: 100%; background: var(--accent); color: #000;
-  border: none; border-radius: 10px; font-family: var(--sans);
-  font-size: 15px; font-weight: 600; padding: 14px;
-  cursor: pointer; transition: opacity 0.15s, transform 0.1s; margin-top: 4px;
-}
-.btn-primary:active { transform: scale(0.98); opacity: 0.85; }
-.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+/* TOTP CARD */
+.totp-card{background:var(--accent-dim);border:1px solid rgba(0,200,83,.2);border-radius:11px;padding:14px 16px;margin-bottom:6px}
+.totp-lbl{font-size:10px;font-weight:600;color:rgba(0,200,83,.6);text-transform:uppercase;letter-spacing:.9px;margin-bottom:10px}
+.totp-body{display:flex;align-items:center;gap:14px}
+.totp-code{font-family:var(--mono);font-size:28px;font-weight:500;color:var(--accent);letter-spacing:4px;flex:1}
+.totp-right{display:flex;flex-direction:column;align-items:center;gap:4px}
+.totp-secs{font-size:10px;color:rgba(0,200,83,.7);font-family:var(--mono)}
+.totp-copy{background:rgba(0,200,83,.15);border:1px solid rgba(0,200,83,.25);border-radius:7px;color:var(--accent);font-size:13px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.totp-copy:active{background:rgba(0,200,83,.3)}
 
-.btn-ghost {
-  width: 100%; background: var(--surface2); color: var(--text2);
-  border: 1px solid var(--border); border-radius: 10px;
-  font-family: var(--sans); font-size: 13px; font-weight: 500;
-  padding: 12px; cursor: pointer; transition: background 0.15s;
-  margin-top: 10px; display: flex; align-items: center;
-  justify-content: center; gap: 8px;
-}
-.btn-ghost:active { background: var(--surface3); }
+/* TOAST */
+#toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface3);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:13px;font-weight:500;padding:9px 18px;white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;z-index:9999;pointer-events:none;max-width:90vw;text-align:center;opacity:0}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
-.login-error {
-  background: rgba(224,85,85,0.1); border: 1px solid rgba(224,85,85,0.25);
-  border-radius: 9px; color: #ff7070; font-size: 13px;
-  padding: 10px 14px; margin-top: 12px; display: none;
-  line-height: 1.5;
-}
-.login-status {
-  font-size: 12px; color: var(--text3);
-  text-align: center; margin-top: 14px; min-height: 18px;
-}
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .25s}
+#loading.hidden{opacity:0;pointer-events:none}
+.spinner{width:36px;height:36px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-size:13px;color:var(--text2)}
 
-/* ══ MAIN SCREEN ═════════════════════════════════ */
-#screen-main { background: var(--bg); }
+/* BIOMETRIC */
+#screen-biometric{align-items:center;justify-content:center;padding:40px 24px;background:radial-gradient(ellipse 60% 40% at 50% 50%,rgba(0,200,83,.05) 0%,transparent 70%),var(--bg)}
+.bio-icon{font-size:56px;margin-bottom:16px}
+.bio-title{font-size:20px;font-weight:600;margin-bottom:7px}
+.bio-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:36px;line-height:1.6}
+.bio-btn{background:var(--accent-dim);border:1.5px solid rgba(0,200,83,.3);border-radius:var(--radius);color:var(--accent);font-family:var(--sans);font-size:15px;font-weight:600;padding:16px 44px;cursor:pointer;margin-bottom:14px;transition:opacity .15s,transform .1s}
+.bio-btn:active{opacity:.8;transform:scale(.97)}
+.bio-alt{background:none;border:none;color:var(--text3);font-family:var(--sans);font-size:13px;cursor:pointer;text-decoration:underline}
 
-.topbar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px 9px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.topbar-logo {
-  width: 30px; height: 30px; background: var(--accent-dim);
-  border: 1px solid rgba(0,200,83,0.2); border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; flex-shrink: 0;
-}
-.search-wrap { flex: 1; position: relative; }
-.search-wrap .s-icon {
-  position: absolute; left: 11px; top: 50%;
-  transform: translateY(-50%); color: var(--text3);
-  font-size: 15px; pointer-events: none;
-}
-.search-wrap input {
-  padding: 9px 34px 9px 33px;
-  font-size: 14px; border-radius: 9px;
-  font-family: var(--sans);
-}
-/* Search clear button */
-.search-clear {
-  position: absolute; right: 9px; top: 50%;
-  transform: translateY(-50%);
-  background: var(--surface3); border: none;
-  color: var(--text3); width: 18px; height: 18px;
-  border-radius: 50%; font-size: 10px; cursor: pointer;
-  display: none; align-items: center; justify-content: center;
-}
-.search-clear.visible { display: flex; }
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease forwards}
+.modal-sheet{background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + var(--safe-b));width:100%;max-width:500px;animation:slideUp .28s cubic-bezier(.32,.72,0,1) forwards}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;margin-top:14px}
+.modal-actions .btn-primary{flex:1;margin:0}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text2);font-family:var(--sans);font-size:14px;font-weight:500;padding:14px 20px;cursor:pointer;transition:background .15s}
+.btn-cancel:active{background:var(--surface3)}
 
-.topbar-btn {
-  background: none; border: none; color: var(--text3);
-  font-size: 18px; cursor: pointer; padding: 5px;
-  flex-shrink: 0; border-radius: 7px;
-  transition: color 0.15s, background 0.15s;
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-}
-.topbar-btn:active { background: var(--surface2); color: var(--text); }
-
-/* ══ AUTO-LOCK BANNER ═══════════════════════════ */
-#lock-banner {
-  background: rgba(196,154,26,0.12);
-  border-bottom: 1px solid rgba(196,154,26,0.2);
-  color: var(--warn); font-size: 12px; font-weight: 500;
-  padding: 6px 14px; text-align: center;
-  display: none; flex-shrink: 0;
-  animation: pulse-warn 1s ease infinite alternate;
-}
-#lock-banner.show { display: block; }
-@keyframes pulse-warn {
-  from { opacity: 0.7; } to { opacity: 1; }
-}
-
-/* ══ CATEGORY PILLS ═══════════════════════════ */
-.cat-scroll {
-  display: flex; gap: 5px; padding: 9px 12px;
-  overflow-x: auto; flex-shrink: 0;
-  scrollbar-width: none; border-bottom: 1px solid var(--border);
-}
-.cat-scroll::-webkit-scrollbar { display: none; }
-.cat-pill {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 99px; color: var(--text2);
-  font-size: 11px; font-weight: 500; padding: 5px 12px;
-  white-space: nowrap; cursor: pointer;
-  transition: all 0.15s; flex-shrink: 0;
-  display: flex; align-items: center; gap: 4px;
-}
-.cat-pill .pill-icon { font-size: 12px; }
-.cat-pill .pill-count {
-  background: var(--surface3); border-radius: 99px;
-  font-size: 10px; padding: 1px 5px; color: var(--text3);
-  transition: all 0.15s;
-}
-.cat-pill.active {
-  background: var(--accent-dim); border-color: rgba(0,200,83,0.35);
-  color: var(--accent);
-}
-.cat-pill.active .pill-count {
-  background: rgba(0,200,83,0.15); color: var(--accent);
-}
-
-/* ══ ENTRY LIST ═══════════════════════════════ */
-.entry-list {
-  flex: 1; overflow-y: auto;
-  padding: 8px 10px calc(8px + var(--safe-bottom));
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Pull-to-refresh indicator */
-#ptr-indicator {
-  text-align: center; padding: 14px; color: var(--text3);
-  font-size: 12px; overflow: hidden; height: 0;
-  transition: height 0.2s; display: flex;
-  align-items: center; justify-content: center; gap: 6px;
-}
-
-/* Section headers (alphabetical grouping) */
-.list-section-header {
-  font-size: 10px; font-weight: 600; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 1px;
-  padding: 10px 4px 4px;
-}
-
-.entry-item {
-  display: flex; align-items: center; gap: 11px;
-  padding: 10px 12px;
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 11px; margin-bottom: 4px;
-  cursor: pointer; position: relative;
-  transition: border-color 0.15s, background 0.12s;
-  overflow: hidden;
-}
-.entry-item::after {
-  content: ''; position: absolute; inset: 0;
-  background: var(--accent-glow); opacity: 0;
-  transition: opacity 0.15s;
-}
-.entry-item:active { background: var(--surface2); border-color: rgba(0,200,83,0.25); }
-.entry-item:active::after { opacity: 1; }
-
-.entry-avatar {
-  width: 36px; height: 36px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px; font-weight: 700; flex-shrink: 0;
-  font-family: var(--sans); letter-spacing: -0.5px;
-}
-.entry-info { flex: 1; min-width: 0; }
-.entry-title {
-  font-size: 14px; font-weight: 500;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.entry-sub {
-  font-size: 11px; color: var(--text2); margin-top: 2px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.entry-badges {
-  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
-}
-.badge-fav { color: #f0c040; font-size: 12px; }
-
-.quick-copy {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 7px; color: var(--text3); font-size: 14px;
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  transition: all 0.15s;
-}
-.quick-copy:active { background: var(--accent-dim); color: var(--accent); border-color: rgba(0,200,83,0.3); }
-
-.empty-state {
-  text-align: center; padding: 60px 20px; color: var(--text3);
-}
-.empty-state .es-icon { font-size: 44px; margin-bottom: 12px; }
-.empty-state p { font-size: 14px; line-height: 1.6; }
-
-/* ══ DETAIL SCREEN ════════════════════════════ */
-#screen-detail { background: var(--bg); }
-
-.detail-topbar {
-  display: flex; align-items: center; gap: 11px;
-  padding: 10px 14px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.btn-back {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text);
-  font-size: 20px; width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  transition: background 0.15s;
-}
-.btn-back:active { background: var(--surface3); }
-.detail-title-wrap { flex: 1; min-width: 0; }
-.detail-entry-title {
-  font-size: 15px; font-weight: 600;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.detail-entry-cat { font-size: 11px; color: var(--text2); margin-top: 1px; }
-
-.detail-scroll {
-  flex: 1; overflow-y: auto;
-  padding: 12px 12px calc(16px + var(--safe-bottom));
-  -webkit-overflow-scrolling: touch;
-}
-
-.field-card {
-  background: var(--surface);
-  border: 1px solid var(--border-soft);
-  border-radius: 11px; padding: 12px 14px;
-  margin-bottom: 6px;
-}
-.field-label {
-  font-size: 10px; font-weight: 600; color: var(--text3);
-  text-transform: uppercase; letter-spacing: 0.9px; margin-bottom: 7px;
-}
-.field-row {
-  display: flex; align-items: center; gap: 7px;
-}
-.field-value {
-  flex: 1; font-family: var(--mono); font-size: 14px;
-  color: var(--text); word-break: break-all; min-width: 0;
-  line-height: 1.4;
-}
-.field-value.masked {
-  font-size: 18px; letter-spacing: 2px; color: var(--text3);
-  line-height: 1;
-}
-.field-value.url-val {
-  color: var(--accent); text-decoration: none;
-  font-family: var(--sans); font-size: 13px;
-}
-.field-btn {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text2);
-  font-size: 15px; min-width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; flex-shrink: 0;
-  transition: all 0.15s;
-}
-.field-btn:active { background: var(--accent-dim); color: var(--accent); border-color: rgba(0,200,83,0.3); }
-.field-btn.copied { background: var(--accent-dim); color: var(--accent); border-color: rgba(0,200,83,0.3); }
-
-/* ══ TOAST ════════════════════════════════════ */
-#toast {
-  position: fixed; bottom: calc(20px + var(--safe-bottom)); left: 50%;
-  transform: translateX(-50%) translateY(70px);
-  background: var(--surface3); border: 1px solid var(--border);
-  border-radius: 99px; color: var(--text);
-  font-size: 13px; font-weight: 500; padding: 9px 18px;
-  white-space: nowrap;
-  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
-  z-index: 9999; pointer-events: none; max-width: 90vw;
-  text-align: center; opacity: 0;
-}
-#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-/* ══ LOADING OVERLAY ══════════════════════════ */
-#loading {
-  position: fixed; inset: 0; background: var(--bg);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 1000; transition: opacity 0.25s;
-}
-#loading.hidden { opacity: 0; pointer-events: none; }
-.spinner {
-  width: 36px; height: 36px;
-  border: 2.5px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  margin-bottom: 14px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-#loading p { font-size: 13px; color: var(--text2); }
-
-/* ══ BIOMETRIC SCREEN ═════════════════════════ */
-#screen-biometric {
-  align-items: center; justify-content: center;
-  padding: 40px 24px;
-  background:
-    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,200,83,0.05) 0%, transparent 70%),
-    var(--bg);
-}
-.bio-icon { font-size: 58px; margin-bottom: 18px; }
-.bio-title { font-size: 20px; font-weight: 600; margin-bottom: 7px; }
-.bio-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 36px; line-height: 1.6; }
-.bio-btn {
-  background: var(--accent-dim); border: 1.5px solid rgba(0,200,83,0.3);
-  border-radius: var(--radius); color: var(--accent);
-  font-family: var(--sans); font-size: 15px; font-weight: 600;
-  padding: 16px 44px; cursor: pointer; margin-bottom: 14px;
-  transition: opacity 0.15s, transform 0.1s;
-}
-.bio-btn:active { opacity: 0.8; transform: scale(0.97); }
-.bio-alt {
-  background: none; border: none; color: var(--text3);
-  font-family: var(--sans); font-size: 13px;
-  cursor: pointer; text-decoration: underline;
-}
-
-/* ══ REFRESH PASSWORD MODAL ═══════════════════ */
-#refresh-modal {
-  position: fixed; inset: 0; z-index: 500;
-  background: rgba(0,0,0,0.7);
-  display: none; align-items: flex-end;
-  justify-content: center;
-  backdrop-filter: blur(4px);
-  animation: none;
-}
-#refresh-modal.open {
-  display: flex;
-  animation: fadeIn 0.2s ease forwards;
-}
-.modal-sheet {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 20px 20px 0 0;
-  padding: 24px 20px calc(24px + var(--safe-bottom));
-  width: 100%; max-width: 500px;
-  animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1) forwards;
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-.modal-handle {
-  width: 40px; height: 4px; background: var(--border);
-  border-radius: 2px; margin: 0 auto 20px;
-}
-.modal-title {
-  font-size: 17px; font-weight: 600; margin-bottom: 16px;
-}
-.modal-actions {
-  display: flex; gap: 10px; margin-top: 14px;
-}
-.modal-actions .btn-primary { flex: 1; margin: 0; }
-.btn-cancel {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; color: var(--text2); font-family: var(--sans);
-  font-size: 14px; font-weight: 500; padding: 14px 20px;
-  cursor: pointer; transition: background 0.15s;
-}
-.btn-cancel:active { background: var(--surface3); }
-
-/* ══ TAGS & MISC ══════════════════════════════ */
-.tag-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
-.tag {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 99px; font-size: 11px; color: var(--text2); padding: 3px 9px;
-}
-.notes-val {
-  font-size: 13px; color: var(--text2); line-height: 1.7;
-  white-space: pre-wrap; word-break: break-word; font-family: var(--sans);
-}
-.linked-row { display: flex; flex-direction: column; gap: 5px; margin-top: 5px; }
-.linked-chip {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 9px; padding: 8px 11px; cursor: pointer;
-  transition: border-color 0.15s;
-}
-.linked-chip:active { border-color: rgba(0,200,83,0.3); }
-.linked-chip-title { font-size: 13px; font-weight: 500; }
-.linked-chip-cat { font-size: 11px; color: var(--text2); }
-
-/* ══ SWIPE-BACK VISUAL HINT ═══════════════════ */
-#swipe-hint {
-  position: fixed; left: 0; top: 50%;
-  transform: translateY(-50%);
-  width: 4px; height: 60px;
-  background: var(--accent); border-radius: 0 4px 4px 0;
-  opacity: 0; transition: opacity 0.2s;
-  pointer-events: none; z-index: 800;
-}
-#swipe-hint.show { opacity: 0.6; }
-
-/* ══ VAULT INFO BANNER (Detail) ═══════════════ */
-.vault-info-row {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px 0; flex-shrink: 0;
-}
-.vault-sync-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); flex-shrink: 0;
-}
-.vault-sync-txt {
-  font-size: 10px; color: var(--text3);
-  letter-spacing: 0.3px;
-}
+/* MISC */
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tag{background:var(--surface2);border:1px solid var(--border);border-radius:99px;font-size:11px;color:var(--text2);padding:3px 9px}
+.notes-val{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-word;font-family:var(--sans)}
+.linked-row{display:flex;flex-direction:column;gap:5px;margin-top:5px}
+.linked-chip{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:8px 11px;cursor:pointer;transition:border-color .15s}
+.linked-chip:active{border-color:rgba(0,200,83,.3)}
+.linked-chip-title{font-size:13px;font-weight:500}
+.linked-chip-cat{font-size:11px;color:var(--text2)}
+#swipe-hint{position:fixed;left:0;top:50%;transform:translateY(-50%);width:4px;height:60px;background:var(--accent);border-radius:0 4px 4px 0;opacity:0;transition:opacity .2s;pointer-events:none;z-index:800}
+#swipe-hint.show{opacity:.5}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="loading">
-  <div class="spinner"></div>
-  <p id="loading-text">Φόρτωση…</p>
-</div>
-
-<!-- TOAST -->
+<div id="loading"><div class="spinner"></div><p id="loading-text">Φόρτωση…</p></div>
 <div id="toast"></div>
-
-<!-- SWIPE HINT -->
 <div id="swipe-hint"></div>
 
-<!-- ══ REFRESH PASSWORD MODAL ══ -->
-<div id="refresh-modal" onclick="closeRefreshModal(event)">
+<!-- REFRESH MODAL -->
+<div class="modal-overlay" id="refresh-modal" onclick="modalBgClick(event,'refresh-modal')">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">🔄 Ανανέωση από Drive</div>
@@ -581,26 +188,25 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
       <label class="input-label">Master Password</label>
       <div class="input-wrap">
         <input type="password" id="refresh-pw" placeholder="Εισάγετε master password…"
-               autocomplete="current-password"
-               onkeydown="if(event.key==='Enter')doRefreshWithPw()">
-        <button class="pw-toggle" onclick="toggleRefreshPw()">👁</button>
+               autocomplete="current-password" onkeydown="if(event.key==='Enter')doRefreshConfirm()">
+        <button class="pw-toggle" onclick="toggleFPw('refresh-pw')">👁</button>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeRefreshModal()">Ακύρωση</button>
-      <button class="btn-primary" onclick="doRefreshWithPw()">Ανανέωση</button>
+      <button class="btn-cancel" onclick="closeModal('refresh-modal')">Ακύρωση</button>
+      <button class="btn-primary" onclick="doRefreshConfirm()">Ανανέωση</button>
     </div>
   </div>
 </div>
 
-<!-- ══ LOGIN SCREEN ══ -->
+<!-- LOGIN -->
 <div class="screen" id="screen-login">
   <div class="login-logo">🔐</div>
   <div class="login-title">Vault</div>
   <div class="login-sub">Password Manager</div>
   <div class="login-card">
     <div id="gdrive-section">
-      <button class="btn-ghost" id="btn-gdrive-login" onclick="signInGoogle()">
+      <button class="btn-ghost" onclick="signInGoogle()">
         <svg width="17" height="17" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -615,31 +221,28 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
         <label class="input-label">Master Password</label>
         <div class="input-wrap">
           <input type="password" id="master-pw" placeholder="Εισάγετε master password…"
-                 autocomplete="current-password"
-                 onkeydown="if(event.key==='Enter')doUnlock()">
-          <button class="pw-toggle" onclick="togglePw()">👁</button>
+                 autocomplete="current-password" onkeydown="if(event.key==='Enter')doUnlock()">
+          <button class="pw-toggle" onclick="toggleFPw('master-pw')">👁</button>
         </div>
       </div>
       <button class="btn-primary" id="btn-unlock" onclick="doUnlock()">Άνοιγμα Vault</button>
-      <button class="btn-ghost" onclick="signOutGoogle()" style="font-size:12px">
-        ← Αλλαγή λογαριασμού
-      </button>
+      <button class="btn-ghost" onclick="signOutGoogle()" style="font-size:12px">← Αλλαγή λογαριασμού</button>
     </div>
     <div class="login-error" id="login-error"></div>
     <div class="login-status" id="login-status"></div>
   </div>
 </div>
 
-<!-- ══ BIOMETRIC SCREEN ══ -->
+<!-- BIOMETRIC -->
 <div class="screen" id="screen-biometric">
   <div class="bio-icon">👆</div>
   <div class="bio-title">Γρήγορο Ξεκλείδωμα</div>
-  <div class="bio-sub">Χρησιμοποίησε το δακτυλικό σου αποτύπωμα<br>ή PIN για πρόσβαση</div>
+  <div class="bio-sub">Χρησιμοποίησε δακτυλικό αποτύπωμα<br>ή PIN για πρόσβαση</div>
   <button class="bio-btn" onclick="doBiometric()">🔓 Ξεκλείδωμα</button>
-  <button class="bio-alt" onclick="showScreen('screen-login'); showPwSection()">Χρήση Master Password</button>
+  <button class="bio-alt" onclick="showScreen('screen-login');showPwSection()">Χρήση Master Password</button>
 </div>
 
-<!-- ══ MAIN SCREEN ══ -->
+<!-- MAIN -->
 <div class="screen" id="screen-main">
   <div class="topbar">
     <div class="topbar-logo">🔐</div>
@@ -650,31 +253,26 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
              autocapitalize="off" spellcheck="false">
       <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
     </div>
-    <button class="topbar-btn" onclick="openRefreshModal()" title="Ανανέωση" id="btn-refresh">🔄</button>
+    <button class="topbar-btn" id="btn-refresh" onclick="openRefreshModal()" title="Ανανέωση">🔄</button>
     <button class="topbar-btn" onclick="lockVault()" title="Κλείδωμα">🔒</button>
   </div>
-
-  <!-- Auto-lock warning banner -->
-  <div id="lock-banner">⏱ Αυτόματο κλείδωμα σε <span id="lock-countdown"></span></div>
-
-  <!-- Vault sync info -->
+  <div id="lock-banner">⏱ Αυτόματο κλείδωμα σε <span id="lock-cd"></span></div>
   <div class="vault-info-row" id="vault-info-row" style="display:none">
     <div class="vault-sync-dot"></div>
     <span class="vault-sync-txt" id="vault-sync-txt"></span>
   </div>
-
   <div class="cat-scroll" id="cat-scroll"></div>
   <div id="ptr-indicator">↑ Τράβα για ανανέωση</div>
   <div class="entry-list" id="entry-list"></div>
 </div>
 
-<!-- ══ DETAIL SCREEN ══ -->
+<!-- DETAIL -->
 <div class="screen" id="screen-detail">
   <div class="detail-topbar">
     <button class="btn-back" onclick="goBack()">‹</button>
     <div class="detail-title-wrap">
       <div class="detail-entry-title" id="det-title"></div>
-      <div class="detail-entry-cat" id="det-cat"></div>
+      <div class="detail-entry-cat"   id="det-cat"></div>
     </div>
     <button class="field-btn" id="det-fav-btn" style="font-size:18px" title="Favorite"></button>
   </div>
@@ -682,884 +280,661 @@ input::placeholder { color: var(--text3); font-family: var(--sans); }
 </div>
 
 <script>
-// ══════════════════════════════════════════════
-// CONFIG
-// ══════════════════════════════════════════════
-const CLIENT_ID   = '342666465731-ra1slcsblprck74jvur2gs31fc7hueud.apps.googleusercontent.com';
-const SCOPE       = 'https://www.googleapis.com/auth/drive.readonly';
-const VAULT_EXT   = '.vault';
-const AUTO_LOCK   = 5 * 60 * 1000;        // 5 min
-const WARN_BEFORE = 60 * 1000;            // warn 60s before lock
-const CACHE_KEY   = 'vault_encrypted_cache';
-const SESSION_KEY = 'vault_session';
+/* ══ CONFIG ══ */
+const CLIENT_ID  = '342666465731-ra1slcsblprck74jvur2gs31fc7hueud.apps.googleusercontent.com';
+const SCOPE      = 'https://www.googleapis.com/auth/drive.readonly';
+const AUTO_LOCK  = 5 * 60 * 1000;
+const WARN_BEFORE= 60 * 1000;
+const CACHE_KEY  = 'vault_encrypted_cache';
+const SESSION_KEY= 'vault_session';
+const BIO_KEY    = 'bio_master_v2';   // AES-GCM encrypted
+const BIO_DEV_KEY= 'bio_device_key';  // random device encryption key
+const CAT_ICONS  = {'ALL':'✦','WHM Login':'⚡','Hosting / cPanel':'🖥','WordPress Sites':'🌐','Domains':'🔗','VMs / Servers':'🖧','Services / Proxies':'🔀','Apps & Themes':'🎨','IT Support':'🔧','General':'📁'};
+const AV_COLORS  = ['#1e3a5f','#2d4f3e','#4a2d4f','#3d2d1e','#1e3d4a','#3d3d1e','#4a1e2d','#2d3d4a'];
 
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
-let vaultData       = null;
-let allEntries      = [];
-let filteredEntries = [];
-let currentCat      = 'ALL';
-let lockTimer       = null;
-let warnTimer       = null;
-let countdownTimer  = null;
-let currentEntry    = null;
-let googleToken     = null;
-let _pendingRefreshBuffer = null;
+/* ══ STATE ══ */
+let vaultData=null, allEntries=[], filteredEntries=[], currentCat='ALL';
+let lockTimer=null, warnTimer=null, cdTimer=null;
+let currentEntry=null, googleToken=null;
+// Master password in JS heap only — cleared on lock, never written to any storage
+let _sessionPw=null;
+// Live TOTP intervals
+const _totpIvs=[];
 
-// Category icons (matches desktop vault)
-const CAT_ICONS = {
-  'ALL':               '✦',
-  'WHM Login':         '⚡',
-  'Hosting / cPanel':  '🖥',
-  'WordPress Sites':   '🌐',
-  'Domains':           '🔗',
-  'VMs / Servers':     '🖧',
-  'Services / Proxies':'🔀',
-  'Apps & Themes':     '🎨',
-  'IT Support':        '🔧',
-  'General':           '📁',
-};
-
-const AVATAR_COLORS = [
-  '#1e3a5f','#2d4f3e','#4a2d4f','#3d2d1e',
-  '#1e3d4a','#3d3d1e','#4a1e2d','#2d3d4a',
-];
-
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-window.addEventListener('load', async () => {
+/* ══ INIT ══ */
+window.addEventListener('load', async ()=>{
   hideLoading();
-
-  const sess = sessionStorage.getItem(SESSION_KEY);
-  if (sess) {
-    try {
-      vaultData = JSON.parse(sess);
-      buildEntries();
-      showScreen('screen-main');
-      resetLockTimer();
-      return;
-    } catch(e) {}
+  const sess=sessionStorage.getItem(SESSION_KEY);
+  if(sess){
+    try{vaultData=JSON.parse(sess);buildEntries();showScreen('screen-main');resetLockTimer();return;}catch(e){}
   }
-
-  if (await hasBiometric() && localStorage.getItem('bio_enrolled')) {
-    showScreen('screen-biometric');
-    return;
-  }
-
+  if(await hasBiometric()&&localStorage.getItem(BIO_KEY)){showScreen('screen-biometric');return;}
   showScreen('screen-login');
-  const token  = localStorage.getItem('google_token');
-  const expiry = parseInt(localStorage.getItem('google_token_expiry') || '0');
-  if (token && Date.now() < expiry) {
-    googleToken = token;
-    showPwSection();
-  }
+  const tk=localStorage.getItem('google_token'), exp=parseInt(localStorage.getItem('google_token_expiry')||'0');
+  if(tk&&Date.now()<exp){googleToken=tk;showPwSection();}
 });
 
-// ══════════════════════════════════════════════
-// GOOGLE AUTH
-// ══════════════════════════════════════════════
-function signInGoogle() {
-  const params = new URLSearchParams({
-    client_id: CLIENT_ID, redirect_uri: location.origin + location.pathname,
-    response_type: 'token', scope: SCOPE, prompt: 'select_account',
-  });
-  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
+/* ══ GOOGLE AUTH ══ */
+function signInGoogle(){
+  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+new URLSearchParams(
+    {client_id:CLIENT_ID,redirect_uri:location.origin+location.pathname,response_type:'token',scope:SCOPE,prompt:'select_account'});
+}
+(function handleOAuth(){
+  const h=new URLSearchParams(location.hash.slice(1));
+  if(!h.get('access_token'))return;
+  googleToken=h.get('access_token');
+  const exp=Date.now()+parseInt(h.get('expires_in')||'3600')*1000;
+  localStorage.setItem('google_token',googleToken);
+  localStorage.setItem('google_token_expiry',exp);
+  history.replaceState(null,'',location.pathname);
+  showPwSection();
+})();
+function signOutGoogle(){
+  localStorage.removeItem('google_token');localStorage.removeItem('google_token_expiry');
+  googleToken=null;
+  document.getElementById('pw-section').style.display='none';
+  document.getElementById('gdrive-section').style.display='block';
+}
+function showPwSection(){
+  document.getElementById('gdrive-section').style.display='none';
+  document.getElementById('pw-section').style.display='block';
+  const exp=parseInt(localStorage.getItem('google_token_expiry')||'0');
+  const rem=Math.max(0,Math.round((exp-Date.now())/60000));
+  setStatus(`✓ Google Drive  ·  token: ${rem}λ`);
+  setTimeout(()=>document.getElementById('master-pw').focus(),120);
 }
 
-function handleOAuthRedirect() {
-  const hash = new URLSearchParams(location.hash.slice(1));
-  if (hash.get('access_token')) {
-    googleToken = hash.get('access_token');
-    const expiry = Date.now() + parseInt(hash.get('expires_in') || '3600') * 1000;
-    localStorage.setItem('google_token', googleToken);
-    localStorage.setItem('google_token_expiry', expiry);
-    history.replaceState(null, '', location.pathname);
-    showPwSection();
-  }
+/* ══ GOOGLE DRIVE ══ */
+async function findVaultFile(){
+  const q=encodeURIComponent("name='passwords.vault' and trashed=false");
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=10`,
+    {headers:{Authorization:'Bearer '+googleToken}});
+  if(!r.ok) throw new Error('Drive API error: '+r.status);
+  const d=await r.json();
+  if(d.files?.length){d.files.sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));return d.files[0];}
+  const q2=encodeURIComponent("name contains '.vault' and trashed=false");
+  const r2=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q2}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=20`,
+    {headers:{Authorization:'Bearer '+googleToken}});
+  const d2=await r2.json();
+  const vf=(d2.files||[]).filter(f=>f.name.endsWith('.vault'));
+  if(!vf.length) throw new Error('Δεν βρέθηκε vault αρχείο στο Google Drive');
+  vf.sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));return vf[0];
 }
-handleOAuthRedirect();
-
-function signOutGoogle() {
-  localStorage.removeItem('google_token');
-  localStorage.removeItem('google_token_expiry');
-  googleToken = null;
-  document.getElementById('pw-section').style.display = 'none';
-  document.getElementById('gdrive-section').style.display = 'block';
-}
-
-function showPwSection() {
-  document.getElementById('gdrive-section').style.display = 'none';
-  document.getElementById('pw-section').style.display = 'block';
-  const expiry    = parseInt(localStorage.getItem('google_token_expiry') || '0');
-  const remaining = Math.max(0, Math.round((expiry - Date.now()) / 60000));
-  setStatus(`✓ Google Drive  ·  token: ${remaining}λ`);
-  setTimeout(() => document.getElementById('master-pw').focus(), 120);
-}
-
-// ══════════════════════════════════════════════
-// GOOGLE DRIVE
-// ══════════════════════════════════════════════
-async function findVaultFile() {
-  const q = encodeURIComponent("name='passwords.vault' and trashed=false");
-  const r = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=10`,
-    { headers: { Authorization: 'Bearer ' + googleToken } }
-  );
-  if (!r.ok) throw new Error('Drive API error: ' + r.status);
-  const data = await r.json();
-  if (data.files?.length) {
-    data.files.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime));
-    return data.files[0];
-  }
-  const q2 = encodeURIComponent("name contains '.vault' and trashed=false");
-  const r2  = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=${q2}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=20`,
-    { headers: { Authorization: 'Bearer ' + googleToken } }
-  );
-  const data2 = await r2.json();
-  const vf = (data2.files||[]).filter(f => f.name.endsWith('.vault'));
-  if (!vf.length) throw new Error('Δεν βρέθηκε passwords.vault στο Google Drive');
-  vf.sort((a,b) => new Date(b.modifiedTime) - new Date(a.modifiedTime));
-  return vf[0];
-}
-
-async function downloadVaultFile(fileId) {
-  const r = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    { headers: { Authorization: 'Bearer ' + googleToken } }
-  );
-  if (r.status === 401) {
-    localStorage.removeItem('google_token'); localStorage.removeItem('google_token_expiry');
-    googleToken = null; throw new Error('Το Google token έληξε — κάνε ξανά login');
-  }
-  if (!r.ok) throw new Error(`Download failed (${r.status})`);
-  const buf = await r.arrayBuffer();
-  if (buf.byteLength < 100) throw new Error('Το αρχείο φαίνεται κενό');
+async function downloadVaultFile(id){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
+    {headers:{Authorization:'Bearer '+googleToken}});
+  if(r.status===401){localStorage.removeItem('google_token');localStorage.removeItem('google_token_expiry');googleToken=null;throw new Error('Token έληξε — κάνε ξανά login');}
+  if(!r.ok) throw new Error(`Download failed (${r.status})`);
+  const buf=await r.arrayBuffer();
+  if(buf.byteLength<100) throw new Error('Το αρχείο φαίνεται κενό');
   return buf;
 }
 
-// ══════════════════════════════════════════════
-// CRYPTO
-// ══════════════════════════════════════════════
-async function deriveKey(password, salt) {
-  const enc    = new TextEncoder();
-  const keyMat = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits   = await crypto.subtle.deriveBits(
-    { name:'PBKDF2', hash:'SHA-256', salt, iterations:480000 }, keyMat, 256);
-  return new Uint8Array(bits);
+/* ══ CRYPTO — vault decrypt ══ */
+async function deriveKey(pw,salt){
+  const enc=new TextEncoder();
+  const m=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
+  const b=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:480000},m,256);
+  return new Uint8Array(b);
 }
-function base64urlDecode(s) {
-  s = s.replace(/-/g,'+').replace(/_/g,'/');
-  while (s.length % 4) s += '=';
-  const bin = atob(s); const arr = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr;
+function b64uDec(s){
+  s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';
+  const bin=atob(s),a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;
 }
-async function decryptVault(arrayBuffer, password) {
-  const raw  = new Uint8Array(arrayBuffer);
-  const salt = raw.slice(0,16);
-  const keyBytes = await deriveKey(password, salt);
-  const fernetTokenB64 = new TextDecoder('ascii').decode(raw.slice(16)).trim();
-  const fernetRaw = base64urlDecode(fernetTokenB64);
-  if (fernetRaw[0] !== 0x80) throw new Error('Invalid vault format');
-  const iv = fernetRaw.slice(9,25); const ciphertext = fernetRaw.slice(25, fernetRaw.length-32);
-  const aesKey = await crypto.subtle.importKey('raw', keyBytes.slice(16), {name:'AES-CBC'}, false, ['decrypt']);
-  let plaintext;
-  try { plaintext = await crypto.subtle.decrypt({name:'AES-CBC', iv}, aesKey, ciphertext); }
-  catch(e) { throw new Error('Λάθος master password — έλεγξε Caps Lock'); }
-  try { return JSON.parse(new TextDecoder('utf-8').decode(plaintext)); }
-  catch(e) { throw new Error('Αποκρυπτογράφηση απέτυχε'); }
+async function decryptVault(buf,pw){
+  const raw=new Uint8Array(buf),salt=raw.slice(0,16);
+  const kb=await deriveKey(pw,salt);
+  const fr=b64uDec(new TextDecoder('ascii').decode(raw.slice(16)).trim());
+  if(fr[0]!==0x80) throw new Error('Invalid vault format');
+  const iv=fr.slice(9,25),ct=fr.slice(25,fr.length-32);
+  const ak=await crypto.subtle.importKey('raw',kb.slice(16),{name:'AES-CBC'},false,['decrypt']);
+  let pt;
+  try{pt=await crypto.subtle.decrypt({name:'AES-CBC',iv},ak,ct);}
+  catch(e){throw new Error('Λάθος master password — έλεγξε Caps Lock');}
+  try{return JSON.parse(new TextDecoder('utf-8').decode(pt));}
+  catch(e){throw new Error('Αποκρυπτογράφηση απέτυχε');}
 }
 
-// ══════════════════════════════════════════════
-// UNLOCK
-// ══════════════════════════════════════════════
-async function doUnlock() {
-  const pw = document.getElementById('master-pw').value;
-  if (!pw) return;
-  document.getElementById('btn-unlock').disabled = true;
-  showLoading('Σύνδεση με Drive…');
-  hideError();
-  try {
-    let vaultBuffer, cacheTime, loadedFromCache = false;
-    try {
+/* ══ BIOMETRIC — AES-GCM encrypted storage ══
+   Device key: random 256-bit AES key in localStorage (base64)
+   Stored password: IV(12) + AES-GCM ciphertext, base64 encoded
+   Much safer than plain btoa — requires knowing the device key to decrypt
+*/
+async function hasBiometric(){
+  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}
+  catch(e){return false;}
+}
+async function _getDeviceKey(){
+  const stored=localStorage.getItem(BIO_DEV_KEY);
+  if(stored){
+    const raw=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));
+    return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt']);
+  }
+  const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+  const raw=new Uint8Array(await crypto.subtle.exportKey('raw',key));
+  localStorage.setItem(BIO_DEV_KEY,btoa(String.fromCharCode(...raw)));
+  return key;
+}
+async function storeBioPw(pw){
+  const key=await _getDeviceKey();
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(pw));
+  const blob=new Uint8Array(12+enc.byteLength);
+  blob.set(iv,0);blob.set(new Uint8Array(enc),12);
+  localStorage.setItem(BIO_KEY,btoa(String.fromCharCode(...blob)));
+}
+async function loadBioPw(){
+  const stored=localStorage.getItem(BIO_KEY);if(!stored)return null;
+  const key=await _getDeviceKey();
+  const blob=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));
+  try{
+    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:blob.slice(0,12)},key,blob.slice(12));
+    return new TextDecoder().decode(pt);
+  }catch(e){return null;}
+}
+async function doBiometric(){
+  try{
+    const ok=await navigator.credentials.get({
+      publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),userVerification:'required',timeout:60000}
+    });
+    if(!ok)throw new Error();
+    const pw=await loadBioPw();
+    if(!pw){showScreen('screen-login');showPwSection();return;}
+    document.getElementById('master-pw').value=pw;
+    showScreen('screen-login');showPwSection();
+    await doUnlock();
+  }catch(e){showScreen('screen-login');showPwSection();}
+}
+
+/* ══ TOTP — RFC 6238 (HMAC-SHA1) ══ */
+function base32Dec(s){
+  const C='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  s=s.toUpperCase().replace(/[\s=]/g,'');
+  let bits='',bytes=[];
+  for(const c of s){const i=C.indexOf(c);if(i<0)continue;bits+=i.toString(2).padStart(5,'0');}
+  for(let i=0;i+8<=bits.length;i+=8)bytes.push(parseInt(bits.slice(i,i+8),2));
+  return new Uint8Array(bytes);
+}
+async function genTOTP(secret){
+  const kd=base32Dec(secret);
+  const counter=Math.floor(Date.now()/1000/30);
+  const cb=new Uint8Array(8);let c=counter;
+  for(let i=7;i>=0;i--){cb[i]=c&0xff;c=Math.floor(c/256);}
+  const key=await crypto.subtle.importKey('raw',kd,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const sig=new Uint8Array(await crypto.subtle.sign('HMAC',key,cb));
+  const off=sig[19]&0xf;
+  const code=((sig[off]&0x7f)<<24)|(sig[off+1]<<16)|(sig[off+2]<<8)|sig[off+3];
+  return (code%1_000_000).toString().padStart(6,'0');
+}
+function isBase32(v){return /^[A-Z2-7\s=]{8,}$/i.test(String(v||'').trim());}
+function isMfaKey(k){const kl=k.toLowerCase();return kl.includes('mfa')||kl.includes('totp')||kl.includes('2fa')||kl.includes('otp');}
+
+function makeTotpCard(key,secret){
+  const card=document.createElement('div');card.className='totp-card';
+  const lbl=document.createElement('div');lbl.className='totp-lbl';lbl.textContent=`🔐 ${key}`;
+  card.appendChild(lbl);
+  const body=document.createElement('div');body.className='totp-body';
+  const codeEl=document.createElement('div');codeEl.className='totp-code';codeEl.textContent='------';
+  const right=document.createElement('div');right.className='totp-right';
+  // SVG ring
+  const R=13,C=2*Math.PI*R;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width','32');svg.setAttribute('height','32');svg.setAttribute('viewBox','0 0 32 32');
+  svg.style.transform='rotate(-90deg)';
+  const bg=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  bg.setAttribute('cx','16');bg.setAttribute('cy','16');bg.setAttribute('r',R);
+  bg.style.cssText='fill:none;stroke:rgba(0,200,83,.15);stroke-width:3';
+  const fg=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  fg.setAttribute('cx','16');fg.setAttribute('cy','16');fg.setAttribute('r',R);
+  fg.style.cssText=`fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-dasharray:${C};transition:stroke-dashoffset .9s linear`;
+  svg.appendChild(bg);svg.appendChild(fg);
+  const secsEl=document.createElement('div');secsEl.className='totp-secs';
+  const cpBtn=document.createElement('button');cpBtn.className='totp-copy';cpBtn.title='Copy TOTP';cpBtn.textContent='⎘';
+  right.appendChild(svg);right.appendChild(secsEl);right.appendChild(cpBtn);
+  body.appendChild(codeEl);body.appendChild(right);card.appendChild(body);
+
+  let lastCode=null;
+  async function tick(){
+    const secs=30-(Math.floor(Date.now()/1000)%30);
+    secsEl.textContent=`${secs}s`;
+    fg.style.strokeDashoffset=C*(1-secs/30);
+    fg.style.stroke=secs<=5?'var(--danger)':'var(--accent)';
+    if(secs===30||lastCode===null){
+      try{lastCode=await genTOTP(secret);codeEl.textContent=lastCode;}catch(e){codeEl.textContent='ERR';}
+    }
+    codeEl.style.color=secs<=5?'var(--danger)':'var(--accent)';
+  }
+  tick();
+  const iv=setInterval(tick,1000);_totpIvs.push(iv);
+
+  cpBtn.onclick=()=>{
+    if(!lastCode)return;
+    navigator.clipboard.writeText(lastCode).then(()=>{
+      cpBtn.textContent='✓';setTimeout(()=>cpBtn.textContent='⎘',1500);
+      showToast('TOTP αντιγράφηκε');haptic('success');
+    });
+    resetLockTimer();
+  };
+  return card;
+}
+
+/* ══ UNLOCK ══ */
+async function doUnlock(){
+  const pw=document.getElementById('master-pw').value;if(!pw)return;
+  document.getElementById('btn-unlock').disabled=true;
+  showLoading('Σύνδεση με Drive…');hideError();
+  try{
+    let buf,cacheTime,fromCache=false;
+    try{
       setStatus('Εύρεση vault…');
-      const file = await findVaultFile();
+      const file=await findVaultFile();
       setStatus(`📁 ${file.name} — ${(file.size/1024).toFixed(0)}KB`);
-      vaultBuffer = await downloadVaultFile(file.id);
-      localStorage.setItem(CACHE_KEY, arrayBufferToBase64(vaultBuffer));
-      localStorage.setItem(CACHE_KEY+'_time', file.modifiedTime);
-      cacheTime = file.modifiedTime;
-    } catch(e) {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        vaultBuffer = base64ToArrayBuffer(cached);
-        cacheTime = localStorage.getItem(CACHE_KEY+'_time');
-        loadedFromCache = true;
-        setStatus('📴 Offline — cached αντίγραφο');
-      } else { throw e; }
+      buf=await downloadVaultFile(file.id);
+      localStorage.setItem(CACHE_KEY,ab2b64(buf));
+      localStorage.setItem(CACHE_KEY+'_time',file.modifiedTime);
+      cacheTime=file.modifiedTime;
+    }catch(e){
+      const cached=localStorage.getItem(CACHE_KEY);
+      if(cached){buf=b642ab(cached);cacheTime=localStorage.getItem(CACHE_KEY+'_time');fromCache=true;setStatus('📴 Offline — cached αντίγραφο');}
+      else throw e;
     }
     showLoading('Αποκρυπτογράφηση…');
-    vaultData = await decryptVault(vaultBuffer, pw);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
-    if (await hasBiometric() && !localStorage.getItem('bio_enrolled')) offerBiometric(pw);
-    buildEntries();
-    if (cacheTime) {
-      const dt = new Date(cacheTime);
-      const txt = dt.toLocaleDateString('el',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'});
-      document.getElementById('vault-sync-txt').textContent = `Τελευταία sync: ${txt}${loadedFromCache ? ' · offline' : ''}`;
-      document.getElementById('vault-info-row').style.display = 'flex';
-    }
-    showScreen('screen-main', 'fade');
-    resetLockTimer();
-    hideLoading();
-    document.getElementById('master-pw').value = '';
-    if (loadedFromCache) showToast('📴 Offline mode');
+    vaultData=await decryptVault(buf,pw);
+    _sessionPw=pw; // keep in heap; cleared on lock
+    sessionStorage.setItem(SESSION_KEY,JSON.stringify(vaultData));
+    // Enroll biometric silently if available and not yet enrolled
+    if(await hasBiometric()&&!localStorage.getItem(BIO_KEY)) storeBioPw(pw);
+    buildEntries();setSyncInfo(cacheTime,fromCache);
+    showScreen('screen-main','fade');resetLockTimer();hideLoading();
+    document.getElementById('master-pw').value='';
+    if(fromCache) showToast('📴 Offline mode');
     haptic('light');
-  } catch(e) {
-    hideLoading();
-    showError(e.message || 'Λάθος password ή σφάλμα');
-    document.getElementById('btn-unlock').disabled = false;
-    haptic('error');
+  }catch(e){
+    hideLoading();showError(e.message);
+    document.getElementById('btn-unlock').disabled=false;haptic('error');
   }
 }
 
-// ══════════════════════════════════════════════
-// REFRESH (no more window.prompt!)
-// ══════════════════════════════════════════════
-function openRefreshModal() {
-  if (!googleToken) { showToast('Δεν είσαι συνδεδεμένος με Google'); return; }
+/* ══ REFRESH ══ */
+function openRefreshModal(){
+  if(!googleToken){showToast('Δεν είσαι συνδεδεμένος με Google');return;}
+  // If we have the password in memory — refresh silently, no modal needed
+  if(_sessionPw){doRefreshWith(_sessionPw);return;}
   document.getElementById('refresh-modal').classList.add('open');
-  setTimeout(() => document.getElementById('refresh-pw').focus(), 300);
+  setTimeout(()=>document.getElementById('refresh-pw').focus(),300);
 }
-function closeRefreshModal(e) {
-  if (e && e.target !== document.getElementById('refresh-modal')) return;
-  document.getElementById('refresh-modal').classList.remove('open');
-  document.getElementById('refresh-pw').value = '';
+async function doRefreshConfirm(){
+  const pw=document.getElementById('refresh-pw').value;if(!pw)return;
+  closeModal('refresh-modal');document.getElementById('refresh-pw').value='';
+  await doRefreshWith(pw);
 }
-function toggleRefreshPw() {
-  const inp = document.getElementById('refresh-pw');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
-async function doRefreshWithPw() {
-  const pw = document.getElementById('refresh-pw').value;
-  if (!pw) return;
-  closeRefreshModal();
-  const btn = document.getElementById('btn-refresh');
-  btn.textContent = '⏳'; btn.disabled = true;
+async function doRefreshWith(pw){
+  const btn=document.getElementById('btn-refresh');btn.textContent='⏳';btn.disabled=true;
   showLoading('Ανανέωση από Drive…');
-  try {
-    const file = await findVaultFile();
-    const buf  = await downloadVaultFile(file.id);
-    localStorage.setItem(CACHE_KEY, arrayBufferToBase64(buf));
-    localStorage.setItem(CACHE_KEY+'_time', file.modifiedTime);
-    vaultData = await decryptVault(buf, pw);
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
-    buildEntries();
-    hideLoading();
-    const dt  = new Date(file.modifiedTime);
-    const txt = dt.toLocaleDateString('el',{day:'numeric',month:'short'}) + ' ' + dt.toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'});
-    document.getElementById('vault-sync-txt').textContent = `Τελευταία sync: ${txt}`;
-    document.getElementById('vault-info-row').style.display = 'flex';
-    showToast(`✓ Ανανεώθηκε  ·  ${txt}`);
-    haptic('success');
-  } catch(e) {
-    hideLoading();
-    showToast('❌ ' + e.message);
-    haptic('error');
-  } finally {
-    btn.textContent = '🔄'; btn.disabled = false;
-    document.getElementById('refresh-pw').value = '';
+  try{
+    const file=await findVaultFile();
+    const buf=await downloadVaultFile(file.id);
+    localStorage.setItem(CACHE_KEY,ab2b64(buf));
+    localStorage.setItem(CACHE_KEY+'_time',file.modifiedTime);
+    vaultData=await decryptVault(buf,pw);
+    _sessionPw=pw;
+    sessionStorage.setItem(SESSION_KEY,JSON.stringify(vaultData));
+    buildEntries();setSyncInfo(file.modifiedTime,false);
+    hideLoading();showToast(`✓ Ανανεώθηκε · ${fmtDate(new Date(file.modifiedTime))}`);haptic('success');
+  }catch(e){hideLoading();showToast('❌ '+e.message);haptic('error');}
+  finally{btn.textContent='🔄';btn.disabled=false;}
+}
+
+/* ══ DATA ══ */
+function buildEntries(){
+  allEntries=[];
+  for(const [cat,info] of Object.entries(vaultData.categories||{})){
+    if(!info||typeof info!=='object'||Array.isArray(info))continue;
+    for(const e of (info.entries||[]))if(e&&hasRC(e))allEntries.push({entry:e,cat});
+    for(const [sub,se] of Object.entries(info.subcategories||{}))
+      if(Array.isArray(se))for(const e of se)if(e&&hasRC(e))allEntries.push({entry:e,cat,sub});
+  }
+  buildCatTabs();filterEntries();
+}
+function getCats(){
+  return Object.keys(vaultData?.categories||{}).filter(k=>vaultData.categories[k]&&typeof vaultData.categories[k]==='object');
+}
+function buildCatTabs(){
+  const scroll=document.getElementById('cat-scroll');scroll.innerHTML='';
+  for(const cat of['ALL',...getCats()]){
+    const count=cat==='ALL'?allEntries.length:allEntries.filter(e=>e.cat===cat).length;
+    if(cat!=='ALL'&&count===0)continue;
+    const p=document.createElement('div');p.className='cat-pill'+(cat===currentCat?' active':'');
+    const icon=CAT_ICONS[cat]||'📂';
+    p.innerHTML=`${icon} ${cat==='ALL'?'Όλα':cat} <span class="pcount">${count}</span>`;
+    p.onclick=()=>{currentCat=cat;buildCatTabs();filterEntries();haptic('selection');};
+    scroll.appendChild(p);
   }
 }
-
-// ══════════════════════════════════════════════
-// BIOMETRIC
-// ══════════════════════════════════════════════
-async function hasBiometric() {
-  try { return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(); }
-  catch(e) { return false; }
-}
-async function doBiometric() {
-  try {
-    const encPw = localStorage.getItem('bio_enc_pw');
-    if (!encPw) { showScreen('screen-login'); showPwSection(); return; }
-    const assertion = await navigator.credentials.get({
-      publicKey: {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        userVerification: 'required', timeout: 60000,
-      }
-    });
-    if (assertion) {
-      const pw = atob(localStorage.getItem('bio_enc_pw') || '');
-      document.getElementById('master-pw').value = pw;
-      showScreen('screen-login'); showPwSection();
-      await doUnlock();
-    }
-  } catch(e) { showScreen('screen-login'); showPwSection(); }
-}
-function offerBiometric(pw) {
-  localStorage.setItem('bio_enc_pw', btoa(pw));
-  localStorage.setItem('bio_enrolled', '1');
-}
-
-// ══════════════════════════════════════════════
-// DATA
-// ══════════════════════════════════════════════
-function buildEntries() {
-  allEntries = [];
-  const cats = vaultData.categories || {};
-  for (const [cat, info] of Object.entries(cats)) {
-    if (!info || typeof info !== 'object' || Array.isArray(info)) continue;
-    const entries = Array.isArray(info.entries) ? info.entries : [];
-    for (const e of entries)
-      if (e && typeof e === 'object' && hasRealContent(e))
-        allEntries.push({ entry:e, cat });
-    const subs = info.subcategories || {};
-    for (const [sub, subEntries] of Object.entries(subs)) {
-      if (!Array.isArray(subEntries)) continue;
-      for (const e of subEntries)
-        if (e && typeof e === 'object' && hasRealContent(e))
-          allEntries.push({ entry:e, cat, sub });
-    }
-  }
-  buildCatTabs();
-  filterEntries();
-}
-
-function getCategories() {
-  if (!vaultData) return [];
-  return Object.keys(vaultData.categories||{}).filter(k =>
-    vaultData.categories[k] && typeof vaultData.categories[k] === 'object');
-}
-
-function buildCatTabs() {
-  const scroll = document.getElementById('cat-scroll');
-  scroll.innerHTML = '';
-  const cats = ['ALL', ...getCategories()];
-  for (const cat of cats) {
-    const count = cat==='ALL' ? allEntries.length :
-      allEntries.filter(e=>e.cat===cat).length;
-    if (cat!=='ALL' && count===0) continue;
-    const icon = CAT_ICONS[cat] || '📂';
-    const pill = document.createElement('div');
-    pill.className = 'cat-pill' + (cat===currentCat ? ' active' : '');
-    pill.innerHTML = `<span class="pill-icon">${icon}</span>${cat==='ALL'?'Όλα':cat}<span class="pill-count">${count}</span>`;
-    pill.onclick = () => selectCat(cat);
-    scroll.appendChild(pill);
-  }
-}
-
-function selectCat(cat) {
-  currentCat = cat; buildCatTabs(); filterEntries();
-  haptic('selection');
-}
-
-function hasRealContent(e) {
-  for (const [k,v] of Object.entries(e)) {
-    if (k.startsWith('_')) continue;
-    if (v && String(v).trim()) return true;
-  }
-  return false;
-}
-
-function getEntryTitle(e) {
-  const tf = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','Apps',
-    'ΔΙΑΧΕΙΡΙΣΗ','LOGIN WHM','Account','ΛΟΓΑΡΙΑΣΜΟΣ'];
-  for (const f of tf)
-    if (e[f] && typeof e[f]==='string' && e[f].trim()) return e[f].trim();
-  const skipF = new Set(['Tags','Notes','URL','LINK','C PANEL','FTP','Password','PASS',
-    'EXTRA PASS','MFA - TOP PASS','Security Questions','Answers','email codes',
-    'email account','USER1 PASS','USER2 PASS','HIDE BACKEND','BRUTE FORCE PROTECT']);
-  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
-  for (const [k,v] of Object.entries(e)) {
-    if (k.startsWith('_') || skipF.has(k)) continue;
-    if (typeof v!=='string' || !v.trim()) continue;
-    if (uuidRe.test(v.trim())) continue;
-    if (v.startsWith('http')||v.startsWith('ftp')) continue;
-    if (v.includes('@')&&v.includes('.')) continue;
+function hasRC(e){return Object.entries(e).some(([k,v])=>!k.startsWith('_')&&v&&String(v).trim());}
+function getTitle(e){
+  const tf=['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','Apps','ΔΙΑΧΕΙΡΙΣΗ','LOGIN WHM','Account','ΛΟΓΑΡΙΑΣΜΟΣ'];
+  for(const f of tf)if(e[f]&&typeof e[f]==='string'&&e[f].trim())return e[f].trim();
+  const skip=new Set(['Tags','Notes','URL','LINK','C PANEL','FTP','Password','PASS','EXTRA PASS','MFA - TOP PASS','Security Questions','Answers','email codes','email account','USER1 PASS','USER2 PASS']);
+  const uRe=/^[0-9a-f]{8}-[0-9a-f]{4}-/i;
+  for(const [k,v] of Object.entries(e)){
+    if(k.startsWith('_')||skip.has(k)||typeof v!=='string'||!v.trim())continue;
+    if(uRe.test(v.trim())||v.startsWith('http')||v.startsWith('ftp'))continue;
+    if(v.includes('@')&&v.includes('.'))continue;
     return v.trim();
   }
   return '—';
 }
-function getEntrySubtitle(e) {
-  const url = e.LINK||e.URL||e['Public URL']||e['C PANEL'];
-  if (url && typeof url==='string') {
-    try { return new URL(url).hostname; } catch { return url; }
-  }
-  return e.Username||e.User||e.USER||e.USER1||e['Owner Email']||e.Email||
-         e.IP||e['IP (Public)']||e['Backend Target']||'';
+function getSub(e){
+  const url=e.LINK||e.URL||e['Public URL']||e['C PANEL'];
+  if(url&&typeof url==='string')try{return new URL(url).hostname;}catch{return url;}
+  return e.Username||e.User||e.USER||e.USER1||e['Owner Email']||e.Email||e.IP||e['IP (Public)']||'';
 }
-function getAvatarStyle(title) {
-  const ch  = (title||'?')[0].toUpperCase();
-  const idx = ch.charCodeAt(0) % AVATAR_COLORS.length;
-  return { letter: ch, color: AVATAR_COLORS[idx] };
+function getAv(t){const ch=(t||'?')[0].toUpperCase();return{letter:ch,color:AV_COLORS[ch.charCodeAt(0)%AV_COLORS.length]};}
+function getEntryPw(e){
+  const d=e.Password||e.PASS||e['EXTRA PASS'];if(d)return d;
+  return Object.entries(e).find(([k,v])=>{const kl=k.toLowerCase();return kl.includes('pass')&&!kl.includes('mfa')&&!kl.includes('totp')&&v;})?.[1]||null;
 }
+function getEntryUser(e){return e.Username||e.User||e.USER||e.USER1||e['Owner Email']||e.Email||null;}
 
-// ══════════════════════════════════════════════
-// SEARCH
-// ══════════════════════════════════════════════
-function onSearchInput() {
-  const val = document.getElementById('search-input').value;
-  const clr = document.getElementById('search-clear');
-  val ? clr.classList.add('visible') : clr.classList.remove('visible');
+/* ══ SEARCH ══ */
+function onSearchInput(){
+  const v=document.getElementById('search-input').value;
+  document.getElementById('search-clear').classList.toggle('visible',!!v);
   filterEntries();
 }
-function clearSearch() {
-  document.getElementById('search-input').value = '';
+function clearSearch(){
+  document.getElementById('search-input').value='';
   document.getElementById('search-clear').classList.remove('visible');
-  filterEntries();
-  document.getElementById('search-input').focus();
+  filterEntries();document.getElementById('search-input').focus();
 }
-
-function filterEntries() {
-  const q = (document.getElementById('search-input').value||'').toLowerCase().trim();
-  filteredEntries = allEntries.filter(({entry:e, cat}) => {
-    if (currentCat!=='ALL' && cat!==currentCat) return false;
-    if (!q) return true;
-    return Object.values(e).some(v => v!=null && String(v).toLowerCase().includes(q));
+function filterEntries(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase().trim();
+  filteredEntries=allEntries.filter(({entry:e,cat})=>{
+    if(currentCat!=='ALL'&&cat!==currentCat)return false;
+    if(!q)return true;
+    return Object.values(e).some(v=>v!=null&&String(v).toLowerCase().includes(q));
   });
   renderList(q);
 }
-
-function renderList(q='') {
-  const list = document.getElementById('entry-list');
-  list.innerHTML = '';
-
-  const sorted = filteredEntries.slice().sort((a,b) => {
-    const af = a.entry._favorite ? 0 : 1;
-    const bf = b.entry._favorite ? 0 : 1;
-    if (af!==bf) return af-bf;
-    return getEntryTitle(a.entry).localeCompare(getEntryTitle(b.entry), 'el');
+function renderList(q=''){
+  const list=document.getElementById('entry-list');list.innerHTML='';
+  const sorted=filteredEntries.slice().sort((a,b)=>{
+    const af=a.entry._favorite?0:1,bf=b.entry._favorite?0:1;
+    if(af!==bf)return af-bf;
+    return getTitle(a.entry).localeCompare(getTitle(b.entry),'el');
   });
-
-  if (!sorted.length) {
-    list.innerHTML = `<div class="empty-state">
-      <div class="es-icon">${q ? '🔍' : '📭'}</div>
-      <p>${q ? `Δεν βρέθηκαν αποτελέσματα για<br><strong>"${escHtml(q)}"</strong>` : 'Δεν υπάρχουν εγγραφές'}</p>
-    </div>`;
-    return;
+  if(!sorted.length){
+    const es=document.createElement('div');es.className='empty-state';
+    const icon=document.createElement('div');icon.className='es-icon';icon.textContent=q?'🔍':'📭';
+    const p=document.createElement('p');p.innerHTML=q?`Δεν βρέθηκαν αποτελέσματα για <strong>${escHtml(q)}</strong>`:'Δεν υπάρχουν εγγραφές';
+    es.appendChild(icon);es.appendChild(p);list.appendChild(es);return;
   }
-
-  // Group by first letter when not searching and showing ALL
-  const useGroups = !q && currentCat==='ALL' && sorted.length > 10;
-  let lastLetter = '';
-
-  for (const { entry: e, cat, sub } of sorted) {
-    const title = getEntryTitle(e);
-    const sub_  = getEntrySubtitle(e);
-    const isFav = e._favorite;
-    const av    = getAvatarStyle(title);
-
-    if (useGroups) {
-      const letter = isFav ? '★' : (title[0]||'#').toUpperCase();
-      const groupKey = isFav ? '★' : letter;
-      if (groupKey !== lastLetter) {
-        const hdr = document.createElement('div');
-        hdr.className = 'list-section-header';
-        hdr.textContent = isFav ? '★ Αγαπημένα' : letter;
-        list.appendChild(hdr);
-        lastLetter = groupKey;
+  const useGroups=!q&&currentCat==='ALL'&&sorted.length>10;
+  let lastG='';
+  for(const {entry:e,cat,sub} of sorted){
+    const title=getTitle(e),sub_=getSub(e),isFav=!!e._favorite,av=getAv(title);
+    const pw=getEntryPw(e),user=getEntryUser(e);
+    if(useGroups){
+      const g=isFav?'★':title[0]?.toUpperCase()||'#';
+      if(g!==lastG){
+        const h=document.createElement('div');h.className='list-shdr';
+        h.textContent=isFav?'★ Αγαπημένα':g;list.appendChild(h);lastG=g;
       }
     }
-
-    const item = document.createElement('div');
-    item.className = 'entry-item';
-    item.innerHTML = `
-      <div class="entry-avatar" style="background:${av.color};color:#fff">${av.letter}</div>
-      <div class="entry-info">
-        <div class="entry-title">${escHtml(title)}</div>
-        ${sub_ ? `<div class="entry-sub">${escHtml(sub_)}</div>` : ''}
-      </div>
-      <div class="entry-badges">
-        ${isFav ? '<span class="badge-fav">★</span>' : ''}
-      </div>`;
-
-    // Quick copy password button
-    const pw = e.Password||e.PASS||e['EXTRA PASS']||
-      Object.entries(e).find(([k,v])=>k.toLowerCase().includes('pass')&&v)?.[1];
-    if (pw) {
-      const cp = document.createElement('button');
-      cp.className = 'quick-copy';
-      cp.innerHTML = '⎘'; cp.title = 'Copy password';
-      cp.onclick = ev => {
-        ev.stopPropagation();
-        navigator.clipboard.writeText(String(pw)).then(() => {
-          cp.innerHTML = '✓'; cp.style.color = 'var(--accent)';
-          cp.style.borderColor = 'rgba(0,200,83,0.3)';
-          setTimeout(()=>{ cp.innerHTML='⎘'; cp.style.color=''; cp.style.borderColor=''; }, 1600);
-          showToast('🔑 Password αντιγράφηκε');
-          haptic('success');
-        });
-        resetLockTimer();
-      };
-      item.appendChild(cp);
+    const item=document.createElement('div');item.className='entry-item';
+    const ava=document.createElement('div');ava.className='entry-avatar';
+    ava.style.background=av.color;ava.style.color='#fff';ava.textContent=av.letter;
+    const info=document.createElement('div');info.className='entry-info';
+    const tEl=document.createElement('div');tEl.className='entry-title';tEl.textContent=title;info.appendChild(tEl);
+    if(sub_){const s=document.createElement('div');s.className='entry-sub';s.textContent=sub_;info.appendChild(s);}
+    const acts=document.createElement('div');acts.className='entry-actions';
+    if(isFav){const f=document.createElement('span');f.className='badge-fav';f.textContent='★';acts.appendChild(f);}
+    // Quick copy user
+    if(user){
+      const ub=document.createElement('button');ub.className='qcopy';ub.title='Copy username';ub.textContent='👤';
+      ub.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(user),'Username');resetLockTimer();};
+      acts.appendChild(ub);
     }
-
-    item.onclick = () => { openEntry(e, cat, sub); haptic('light'); };
+    // Quick copy password
+    if(pw){
+      const pb=document.createElement('button');pb.className='qcopy';pb.title='Copy password';pb.textContent='⎘';
+      pb.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(pw),'Password');resetLockTimer();};
+      acts.appendChild(pb);
+    }
+    item.appendChild(ava);item.appendChild(info);item.appendChild(acts);
+    item.onclick=()=>{openEntry(e,cat,sub);haptic('light');};
     list.appendChild(item);
   }
 }
 
-// ══════════════════════════════════════════════
-// DETAIL VIEW
-// ══════════════════════════════════════════════
-function openEntry(entry, cat, sub) {
-  currentEntry = { entry, cat, sub };
-  resetLockTimer();
-
-  document.getElementById('det-title').textContent = getEntryTitle(entry);
-  document.getElementById('det-cat').textContent   = sub ? `${cat}  ›  ${sub}` : cat;
-
-  const favBtn = document.getElementById('det-fav-btn');
-  favBtn.textContent = entry._favorite ? '★' : '☆';
-  favBtn.style.color = entry._favorite ? '#f0c040' : '';
-
-  const scroll = document.getElementById('detail-scroll');
-  scroll.innerHTML = '';
-
-  const isPwField = k => {
-    const kl = k.toLowerCase();
-    return kl.includes('pass') || kl.includes('secret') || kl.includes('key') ||
-           ['mfa','totp','pin'].includes(kl);
-  };
-
-  const skipFields = new Set(['_uid','_favorite','_pinned','_tags','_linked',
-    '_client','_client_cat','_favorite_ts','_pinned_ts','Notes','Tags']);
-  const fieldOrder = ['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','Apps',
-    'URL','LINK','Username','User','ΧΡΗΣΤΗΣ','Owner Email','Email',
-    'Password','PASS','EXTRA PASS','MFA'];
-  const allKeys = Object.keys(entry).filter(k=>!k.startsWith('_')&&!skipFields.has(k));
-  const orderedKeys = [
-    ...fieldOrder.filter(k=>allKeys.includes(k)),
-    ...allKeys.filter(k=>!fieldOrder.includes(k))
-  ];
-
-  for (const key of orderedKeys) {
-    const val = entry[key];
-    const valStr = val!=null ? String(val) : '';
-    if (!valStr.trim()) continue;
-
-    const isPw  = isPwField(key);
-    const isUrl = key==='URL'||key==='LINK'||valStr.startsWith('http');
-
-    const card = document.createElement('div');
-    card.className = 'field-card';
-
-    if (isUrl) {
-      card.innerHTML = `
-        <div class="field-label">${escHtml(key)}</div>
-        <div class="field-row">
-          <a class="field-value url-val" href="${escHtml(valStr)}" target="_blank" rel="noopener"
-             onclick="resetLockTimer()">${escHtml(valStr)}</a>
-          <button class="field-btn" onclick="copyFieldVal(this,'${escHtml(valStr).replace(/'/g,'&#39;')}','${escHtml(key)}')" title="Copy">⎘</button>
-        </div>`;
-    } else if (isPw) {
-      const fid = 'f_' + Math.random().toString(36).slice(2);
-      card.innerHTML = `
-        <div class="field-label">${escHtml(key)}</div>
-        <div class="field-row">
-          <div class="field-value masked" id="${fid}" data-val="${escHtml(valStr)}">••••••••</div>
-          <button class="field-btn" onclick="toggleReveal('${fid}',this)" title="Εμφάνιση">👁</button>
-          <button class="field-btn" onclick="copyFieldVal(this,'${escHtml(valStr).replace(/'/g,'&#39;')}','${escHtml(key)}')" title="Copy">⎘</button>
-        </div>`;
-    } else {
-      card.innerHTML = `
-        <div class="field-label">${escHtml(key)}</div>
-        <div class="field-row">
-          <div class="field-value">${escHtml(valStr)}</div>
-          <button class="field-btn" onclick="copyFieldVal(this,'${escHtml(valStr).replace(/'/g,'&#39;')}','${escHtml(key)}')" title="Copy">⎘</button>
-        </div>`;
-    }
-    scroll.appendChild(card);
+/* ══ DETAIL VIEW — 100% createElement, no innerHTML injection ══ */
+function openEntry(entry,cat,sub){
+  currentEntry={entry,cat,sub};resetLockTimer();
+  while(_totpIvs.length)clearInterval(_totpIvs.pop());
+  document.getElementById('det-title').textContent=getTitle(entry);
+  document.getElementById('det-cat').textContent=sub?`${cat}  ›  ${sub}`:cat;
+  const fb=document.getElementById('det-fav-btn');
+  fb.textContent=entry._favorite?'★':'☆';fb.style.color=entry._favorite?'#f0c040':'';
+  const scroll=document.getElementById('detail-scroll');scroll.innerHTML='';
+  const isPwK=k=>{const kl=k.toLowerCase();return(kl.includes('pass')||kl.includes('secret'))&&!isMfaKey(k);};
+  const skipSet=new Set(['_uid','_favorite','_pinned','_tags','_linked','_client','_client_cat','_favorite_ts','_pinned_ts','Notes','Tags']);
+  const fo=['Title','ΕΠΩΝΥΜΙΑ','Domain Name','Service','Name','Apps','URL','LINK','Username','User','ΧΡΗΣΤΗΣ','Owner Email','Email','Password','PASS','EXTRA PASS','MFA'];
+  const allK=Object.keys(entry).filter(k=>!k.startsWith('_')&&!skipSet.has(k));
+  const ordK=[...fo.filter(k=>allK.includes(k)),...allK.filter(k=>!fo.includes(k))];
+  for(const key of ordK){
+    const val=entry[key];const vs=val!=null?String(val):'';if(!vs.trim())continue;
+    // TOTP
+    if(isMfaKey(key)&&isBase32(vs)){scroll.appendChild(makeTotpCard(key,vs.trim().replace(/\s/g,'').toUpperCase()));continue;}
+    const isUrl=key==='URL'||key==='LINK'||vs.startsWith('http');
+    const isPw=isPwK(key);
+    scroll.appendChild(mkFieldCard(key,vs,isUrl,isPw));
   }
-
+  if(!scroll.children.length){
+    const es=mkEl('div','empty-state');es.style.paddingTop='50px';
+    es.appendChild(mkEl('div','es-icon','📭'));es.appendChild(mkEl('p','','Δεν υπάρχουν πεδία'));
+    scroll.appendChild(es);showScreen('screen-detail','slide');return;
+  }
   // Tags
-  const tags = entry._tags || (entry.Tags ? String(entry.Tags).split(',').map(t=>t.trim()).filter(Boolean) : []);
-  if (tags.length) {
-    const c = document.createElement('div');
-    c.className = 'field-card';
-    c.innerHTML = `<div class="field-label">Tags</div>
-      <div class="tag-row">${tags.map(t=>`<span class="tag">${escHtml(t)}</span>`).join('')}</div>`;
-    scroll.appendChild(c);
-  }
-
+  const tags=entry._tags||(entry.Tags?String(entry.Tags).split(',').map(t=>t.trim()).filter(Boolean):[]);
+  if(tags.length){const c=mkCard('Tags');const r=mkEl('div','tag-row');tags.forEach(t=>{const s=mkEl('span','tag',t);r.appendChild(s);});c.appendChild(r);scroll.appendChild(c);}
   // Notes
-  if (entry.Notes?.trim()) {
-    const c = document.createElement('div');
-    c.className = 'field-card';
-    c.innerHTML = `<div class="field-label">Notes</div><div class="notes-val">${escHtml(entry.Notes)}</div>`;
-    scroll.appendChild(c);
-  }
-
+  if(entry.Notes?.trim()){const c=mkCard('Notes');const n=mkEl('div','notes-val',entry.Notes);c.appendChild(n);scroll.appendChild(c);}
   // Client
-  if (entry._client?.trim()) {
-    const c = document.createElement('div');
-    c.className = 'field-card';
-    c.innerHTML = `<div class="field-label">👤 Client</div><div class="field-value">${escHtml(entry._client)}</div>`;
-    scroll.appendChild(c);
+  if(entry._client?.trim()){const c=mkCard('👤 Client');c.appendChild(mkEl('div','field-value',entry._client));scroll.appendChild(c);}
+  // Linked
+  const res=(entry._linked||[]).map(uid=>allEntries.find(({entry:e})=>e._uid===uid)).filter(Boolean);
+  if(res.length){
+    const c=mkCard('🔗 Συνδεδεμένες');const r=mkEl('div','linked-row');
+    res.forEach(({entry:le,cat:lc})=>{
+      const ch=mkEl('div','linked-chip');
+      ch.appendChild(mkEl('span','',CAT_ICONS[lc]||'🔑'));
+      const d=document.createElement('div');
+      d.appendChild(mkEl('div','linked-chip-title',getTitle(le)));
+      d.appendChild(mkEl('div','linked-chip-cat',lc));
+      ch.appendChild(d);ch.onclick=()=>openEntry(le,lc);r.appendChild(ch);
+    });
+    c.appendChild(r);scroll.appendChild(c);
   }
-
-  // Linked entries
-  const linked   = entry._linked || [];
-  const resolved = linked.map(uid=>allEntries.find(({entry:e})=>e._uid===uid)).filter(Boolean);
-  if (resolved.length) {
-    const c = document.createElement('div');
-    c.className = 'field-card';
-    c.innerHTML = `<div class="field-label">🔗 Συνδεδεμένες</div>
-      <div class="linked-row">
-        ${resolved.map(({entry:le, cat:lc}) => `
-          <div class="linked-chip" onclick="openEntry(${JSON.stringify(le).replace(/"/g,'&quot;')},'${escHtml(lc)}')">
-            <span>${CAT_ICONS[lc]||'🔑'}</span>
-            <div>
-              <div class="linked-chip-title">${escHtml(getEntryTitle(le))}</div>
-              <div class="linked-chip-cat">${escHtml(lc)}</div>
-            </div>
-          </div>`).join('')}
-      </div>`;
-    scroll.appendChild(c);
-  }
-
-  if (!scroll.children.length) {
-    scroll.innerHTML = `<div class="empty-state" style="padding-top:50px">
-      <div class="es-icon">📭</div><p>Δεν υπάρχουν πεδία</p></div>`;
-  }
-
-  showScreen('screen-detail', 'slide');
-  scroll.scrollTop = 0;
+  showScreen('screen-detail','slide');scroll.scrollTop=0;
 }
 
-function toggleReveal(fieldId, btn) {
-  const el = document.getElementById(fieldId);
-  if (!el) return;
-  if (el.classList.contains('masked')) {
-    el.textContent = el.dataset.val;
-    el.classList.remove('masked');
-    btn.textContent = '🙈';
-  } else {
-    el.textContent = '••••••••';
-    el.classList.add('masked');
-    btn.textContent = '👁';
+/* DOM helpers — no innerHTML */
+function mkEl(tag,cls,text){
+  const e=document.createElement(tag);
+  if(cls)e.className=cls;
+  if(text!==undefined)e.textContent=text;
+  return e;
+}
+function mkCard(labelText){
+  const c=mkEl('div','field-card');
+  c.appendChild(mkEl('div','field-label',labelText));
+  return c;
+}
+function mkFieldCard(key,val,isUrl,isPw){
+  const card=mkCard(key);
+  const row=mkEl('div','field-row');
+  if(isUrl){
+    const a=document.createElement('a');
+    a.className='field-value url-val';a.href=val;a.target='_blank';a.rel='noopener';a.textContent=val;
+    a.addEventListener('click',()=>resetLockTimer());
+    row.appendChild(a);row.appendChild(mkCopyBtn(val,key));
+  }else if(isPw){
+    const vEl=mkEl('div','field-value masked');vEl.textContent='••••••••';
+    const eyeBtn=mkEl('button','field-btn','👁');eyeBtn.title='Εμφάνιση';
+    eyeBtn.onclick=()=>{
+      const shown=!vEl.classList.contains('masked');
+      if(shown){vEl.textContent='••••••••';vEl.classList.add('masked');eyeBtn.textContent='👁';}
+      else{vEl.textContent=val;vEl.classList.remove('masked');eyeBtn.textContent='🙈';}
+      resetLockTimer();
+    };
+    row.appendChild(vEl);row.appendChild(eyeBtn);row.appendChild(mkCopyBtn(val,key));
+  }else{
+    const vEl=mkEl('div','field-value',val);
+    row.appendChild(vEl);row.appendChild(mkCopyBtn(val,key));
   }
-  resetLockTimer();
+  card.appendChild(row);return card;
+}
+function mkCopyBtn(val,label){
+  const b=mkEl('button','field-btn','⎘');b.title='Copy';
+  b.onclick=()=>{copyToClipboard(val,label);resetLockTimer();};
+  return b;
 }
 
-function copyFieldVal(btn, val, label) {
-  navigator.clipboard.writeText(val).then(() => {
-    const orig = btn.textContent;
-    btn.textContent = '✓'; btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 1500);
-    showToast(`${label} αντιγράφηκε`);
-    haptic('success');
-  }).catch(() => showToast('Σφάλμα αντιγραφής'));
-  resetLockTimer();
+/* ══ CLIPBOARD ══ */
+function copyToClipboard(val,label){
+  navigator.clipboard.writeText(val).then(()=>{
+    showToast(`${label} αντιγράφηκε`);haptic('success');
+  }).catch(()=>showToast('Σφάλμα αντιγραφής'));
 }
 
-function goBack() {
-  showScreen('screen-main', 'back');
-  resetLockTimer();
-}
+function goBack(){while(_totpIvs.length)clearInterval(_totpIvs.pop());showScreen('screen-main','back');resetLockTimer();}
 
-// ══════════════════════════════════════════════
-// SWIPE-BACK (detail → main)
-// ══════════════════════════════════════════════
-(function() {
-  let startX = 0, startY = 0, swiping = false;
-  document.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    swiping = startX < 28;
-    if (swiping) document.getElementById('swipe-hint').classList.add('show');
-  }, { passive:true });
-  document.addEventListener('touchmove', e => {
-    if (!swiping) return;
-    const dx = e.touches[0].clientX - startX;
-    const dy = Math.abs(e.touches[0].clientY - startY);
-    if (dx > 50 && dy < 60) {
-      const det = document.getElementById('screen-detail');
-      if (det.classList.contains('active')) {
-        det.style.transform = `translateX(${Math.min(dx, window.innerWidth)}px)`;
-        det.style.opacity = Math.max(0, 1 - dx/300);
-      }
-    }
-  }, { passive:true });
-  document.addEventListener('touchend', e => {
-    document.getElementById('swipe-hint').classList.remove('show');
-    const det = document.getElementById('screen-detail');
-    const endX = e.changedTouches[0].clientX;
-    if (swiping && endX - startX > 90 && det.classList.contains('active')) {
-      det.style.transform = ''; det.style.opacity = '';
-      goBack();
-    } else {
-      det.style.transform = ''; det.style.opacity = '';
-    }
-    swiping = false;
-  }, { passive:true });
-})();
-
-// ══════════════════════════════════════════════
-// AUTO-LOCK with countdown warning
-// ══════════════════════════════════════════════
-function resetLockTimer() {
-  clearTimeout(lockTimer);
-  clearTimeout(warnTimer);
-  clearInterval(countdownTimer);
+/* ══ AUTO-LOCK ══ */
+function resetLockTimer(){
+  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);
   document.getElementById('lock-banner').classList.remove('show');
-
-  // Show warning 60s before lock
-  warnTimer = setTimeout(() => {
-    let secs = Math.round(WARN_BEFORE / 1000);
-    const banner  = document.getElementById('lock-banner');
-    const cdEl    = document.getElementById('lock-countdown');
-    cdEl.textContent = `${secs}s`;
-    banner.classList.add('show');
-    countdownTimer = setInterval(() => {
-      secs--;
-      cdEl.textContent = `${secs}s`;
-      if (secs <= 0) clearInterval(countdownTimer);
-    }, 1000);
-  }, AUTO_LOCK - WARN_BEFORE);
-
-  lockTimer = setTimeout(lockVault, AUTO_LOCK);
+  warnTimer=setTimeout(()=>{
+    let s=Math.round(WARN_BEFORE/1000);
+    const cdEl=document.getElementById('lock-cd');
+    cdEl.textContent=`${s}s`;document.getElementById('lock-banner').classList.add('show');
+    cdTimer=setInterval(()=>{s--;cdEl.textContent=`${s}s`;if(s<=0)clearInterval(cdTimer);},1000);
+  },AUTO_LOCK-WARN_BEFORE);
+  lockTimer=setTimeout(lockVault,AUTO_LOCK);
 }
-
-function lockVault() {
-  clearTimeout(lockTimer); clearTimeout(warnTimer); clearInterval(countdownTimer);
+function lockVault(){
+  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);
+  while(_totpIvs.length)clearInterval(_totpIvs.pop());
   document.getElementById('lock-banner').classList.remove('show');
-  vaultData = null; allEntries = [];
-  sessionStorage.removeItem(SESSION_KEY);
-  currentEntry = null;
-
-  if (localStorage.getItem('bio_enrolled') && googleToken)
-    showScreen('screen-biometric');
-  else {
-    showScreen('screen-login');
-    if (googleToken) showPwSection();
-  }
+  vaultData=null;allEntries=[];_sessionPw=null;
+  sessionStorage.removeItem(SESSION_KEY);currentEntry=null;
+  if(localStorage.getItem(BIO_KEY)&&googleToken)showScreen('screen-biometric');
+  else{showScreen('screen-login');if(googleToken)showPwSection();}
   showToast('🔒 Vault κλειδώθηκε');
 }
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&vaultData)resetLockTimer();});
 
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && vaultData) resetLockTimer();
-});
-
-// ══════════════════════════════════════════════
-// PULL TO REFRESH
-// ══════════════════════════════════════════════
-(function() {
-  let startY = 0, pulling = false;
-  const list = document.getElementById('entry-list');
-  const ind  = document.getElementById('ptr-indicator');
-  list.addEventListener('touchstart', e => {
-    if (list.scrollTop === 0) { startY = e.touches[0].clientY; pulling = true; }
-  }, { passive:true });
-  list.addEventListener('touchmove', e => {
-    if (!pulling) return;
-    const dy = e.touches[0].clientY - startY;
-    if (dy > 10 && dy < 80) {
-      ind.style.height = dy + 'px';
-      ind.style.opacity = Math.min(1, dy/50);
-    }
-  }, { passive:true });
-  list.addEventListener('touchend', e => {
-    const dy = e.changedTouches[0].clientY - startY;
-    ind.style.height = '0'; ind.style.opacity = '0';
-    if (dy > 60 && pulling) openRefreshModal();
-    pulling = false;
-  }, { passive:true });
+/* ══ SWIPE-BACK ══ */
+(function(){
+  let sx=0,sy=0,sw=false,det=null;
+  document.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;sw=sx<28;
+    det=document.getElementById('screen-detail');
+    if(sw)document.getElementById('swipe-hint').classList.add('show');
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!sw||!det?.classList.contains('active'))return;
+    const dx=e.touches[0].clientX-sx,dy=Math.abs(e.touches[0].clientY-sy);
+    if(dx>0&&dy<80){det.style.transform=`translateX(${Math.min(dx,window.innerWidth)}px)`;det.style.opacity=Math.max(0,1-dx/300);}
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    document.getElementById('swipe-hint').classList.remove('show');
+    if(sw&&det?.classList.contains('active')){
+      const dx=e.changedTouches[0].clientX-sx;
+      det.style.transform='';det.style.opacity='';
+      if(dx>90)goBack();
+    }else if(det){det.style.transform='';det.style.opacity='';}
+    sw=false;
+  },{passive:true});
 })();
 
-// ══════════════════════════════════════════════
-// HAPTIC
-// ══════════════════════════════════════════════
-function haptic(type) {
-  if (!navigator.vibrate) return;
-  if (type === 'light')     navigator.vibrate(6);
-  else if (type === 'success')   navigator.vibrate([8,40,8]);
-  else if (type === 'error')     navigator.vibrate([20,60,20]);
-  else if (type === 'selection') navigator.vibrate(4);
+/* ══ PULL-TO-REFRESH ══ */
+(function(){
+  let sy=0,pulling=false;
+  const list=document.getElementById('entry-list'),ind=document.getElementById('ptr-indicator');
+  list.addEventListener('touchstart',e=>{if(list.scrollTop===0){sy=e.touches[0].clientY;pulling=true;}},{passive:true});
+  list.addEventListener('touchmove',e=>{
+    if(!pulling)return;
+    const dy=e.touches[0].clientY-sy;
+    if(dy>10&&dy<80){ind.style.height=dy+'px';ind.style.opacity=Math.min(1,dy/50);}
+  },{passive:true});
+  list.addEventListener('touchend',e=>{
+    const dy=e.changedTouches[0].clientY-sy;
+    ind.style.height='0';ind.style.opacity='0';
+    if(dy>60&&pulling)openRefreshModal();pulling=false;
+  },{passive:true});
+})();
+
+/* ══ HAPTIC ══ */
+function haptic(t){
+  if(!navigator.vibrate)return;
+  if(t==='light')navigator.vibrate(6);
+  else if(t==='success')navigator.vibrate([8,40,8]);
+  else if(t==='error')navigator.vibrate([20,60,20]);
+  else if(t==='selection')navigator.vibrate(4);
 }
 
-// ══════════════════════════════════════════════
-// UI HELPERS
-// ══════════════════════════════════════════════
-function showScreen(id, anim) {
-  const prev = document.querySelector('.screen.active');
-  const next = document.getElementById(id);
-
-  if (prev === next) return;
-
-  if (prev) {
-    if (anim === 'back') {
-      prev.classList.add('slide-in');
-      setTimeout(() => prev.classList.remove('slide-in'), 300);
-    }
+/* ══ UI HELPERS ══ */
+function showScreen(id,anim){
+  const prev=document.querySelector('.screen.active'),next=document.getElementById(id);
+  if(prev===next)return;
+  if(prev){
+    if(anim==='back'){prev.classList.add('anim-si');setTimeout(()=>prev.classList.remove('anim-si'),300);}
     prev.classList.remove('active');
   }
-
   next.classList.add('active');
-  if (anim === 'slide') {
-    next.classList.add('slide-in');
-    setTimeout(() => next.classList.remove('slide-in'), 300);
-  } else if (anim === 'fade') {
-    next.classList.add('fade-in');
-    setTimeout(() => next.classList.remove('fade-in'), 250);
-  }
+  if(anim==='slide'){next.classList.add('anim-si');setTimeout(()=>next.classList.remove('anim-si'),300);}
+  else if(anim==='fade'){next.classList.add('anim-fi');setTimeout(()=>next.classList.remove('anim-fi'),250);}
+}
+function showLoading(t){document.getElementById('loading-text').textContent=t||'Φόρτωση…';document.getElementById('loading').classList.remove('hidden');}
+function hideLoading(){document.getElementById('loading').classList.add('hidden');}
+function showError(m){const e=document.getElementById('login-error');e.textContent=m;e.style.display='block';}
+function hideError(){document.getElementById('login-error').style.display='none';}
+function setStatus(m){document.getElementById('login-status').textContent=m;}
+function setSyncInfo(time,offline){
+  if(!time)return;
+  const txt=fmtDate(new Date(time))+(offline?' · offline':'');
+  document.getElementById('vault-sync-txt').textContent=`Sync: ${txt}`;
+  document.getElementById('vault-info-row').style.display='flex';
+}
+function fmtDate(dt){
+  return dt.toLocaleDateString('el',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'});
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function modalBgClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
+function toggleFPw(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ab2b64(buf){
+  const b=new Uint8Array(buf);let s='';const ch=8192;
+  for(let i=0;i<b.length;i+=ch)s+=String.fromCharCode(...b.subarray(i,i+ch));return btoa(s);
+}
+function b642ab(b64){
+  const bin=atob(b64),a=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a.buffer;
 }
 
-function showLoading(text) {
-  document.getElementById('loading-text').textContent = text || 'Φόρτωση…';
-  document.getElementById('loading').classList.remove('hidden');
+let _toastTimer;
+function showToast(m){
+  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
 }
-function hideLoading() {
-  document.getElementById('loading').classList.add('hidden');
-}
-function showError(msg) {
-  const el = document.getElementById('login-error');
-  el.textContent = msg; el.style.display = 'block';
-}
-function hideError() {
-  document.getElementById('login-error').style.display = 'none';
-}
-function setStatus(msg) {
-  document.getElementById('login-status').textContent = msg;
-}
-
-let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
-}
-function togglePw() {
-  const inp = document.getElementById('master-pw');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function arrayBufferToBase64(buf) {
-  const bytes = new Uint8Array(buf); let bin = ''; const chunk = 8192;
-  for (let i=0;i<bytes.length;i+=chunk) bin+=String.fromCharCode(...bytes.subarray(i,i+chunk));
-  return btoa(bin);
-}
-function base64ToArrayBuffer(b64) {
-  const bin = atob(b64); const arr = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); return arr.buffer;
-}
-
-// Touch activity reset
-['touchstart','click'].forEach(ev =>
-  document.addEventListener(ev, () => { if(vaultData) resetLockTimer(); }, {passive:true})
-);
+['touchstart','click'].forEach(ev=>document.addEventListener(ev,()=>{if(vaultData)resetLockTimer();},{passive:true}));
 </script>
 
 <script>
-if ('serviceWorker' in navigator)
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker' in navigator)
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body>
 </html>
