@@ -12,24 +12,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0a0a0a; --surface:#111111; --surface2:#1a1a1a; --surface3:#222222;
-  --accent:#00c853; --accent-dim:#0a2a14; --accent-glow:rgba(0,200,83,.12);
-  --text:#eeeeee; --text2:#aaaaaa; --text3:#888888;
-  --border:#2a2a2a; --border-soft:#1e1e1e;
-  --danger:#e05555; --warn:#c49a1a;
-  --radius:14px; --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif;
-  --safe-b:env(safe-area-inset-bottom,0px); --safe-t:env(safe-area-inset-top,0px);
+:root{
+  --bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;
+  --accent:#00c853;--accent-dim:#0a2a14;--accent-glow:rgba(0,200,83,.12);
+  --text:#eeeeee;--text2:#aaaaaa;--text3:#888888;
+  --border:#2a2a2a;--border-soft:#1e1e1e;
+  --danger:#e05555;--warn:#c49a1a;
+  --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 html,body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;user-select:none;overscroll-behavior:none}
 .screen{display:none;flex-direction:column;height:100dvh;position:absolute;inset:0;will-change:transform,opacity}
 .screen.active{display:flex}
 .screen.anim-si{animation:slideIn .28s cubic-bezier(.32,.72,0,1) forwards}
-.screen.anim-so{animation:slideOut .24s cubic-bezier(.32,.72,0,1) forwards}
 .screen.anim-fi{animation:fadeIn .2s ease forwards}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(40%);opacity:0}}
 @keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
 
 /* LOGIN */
@@ -83,12 +81,24 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 .cat-pill.active .pcount{background:rgba(0,200,83,.15);color:var(--accent)}
 
 /* ENTRY LIST */
-#ptr-indicator{text-align:center;font-size:12px;color:var(--text3);height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:5px}
+#ptr-indicator{text-align:center;font-size:12px;color:var(--text3);height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:5px;transition:height .1s}
 .entry-list{flex:1;overflow-y:auto;padding:8px 10px calc(8px + var(--safe-b));-webkit-overflow-scrolling:touch}
 .list-shdr{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 4px 4px}
-.entry-item{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:11px;margin-bottom:4px;cursor:pointer;transition:border-color .15s,background .12s}
+
+/* Entry item — swipe container */
+.entry-wrap{position:relative;margin-bottom:4px;overflow:hidden;border-radius:11px}
+.entry-item{display:flex;align-items:center;gap:11px;padding:10px 12px;background:var(--surface);border:1px solid var(--border-soft);border-radius:11px;cursor:pointer;transition:border-color .15s,background .12s,transform .12s;position:relative;z-index:1}
 .entry-item:active{background:var(--surface2);border-color:rgba(0,200,83,.25)}
-.entry-avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;font-family:var(--sans)}
+/* swipe-left revealed actions */
+.entry-swipe-actions{position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:0;z-index:0}
+.swipe-btn{width:56px;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:18px;cursor:pointer;border:none;transition:background .15s}
+.swipe-btn.fav{background:#2a2400}
+.swipe-btn.fav span{font-size:9px;color:#f0c040}
+.swipe-btn.copy{background:#0a2a14}
+.swipe-btn.copy span{font-size:9px;color:var(--accent)}
+
+.entry-avatar{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;font-family:var(--sans);overflow:hidden}
+.entry-avatar img{width:100%;height:100%;object-fit:cover;border-radius:9px}
 .entry-info{flex:1;min-width:0}
 .entry-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .entry-sub{font-size:11px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -118,6 +128,13 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 .field-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:15px;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
 .field-btn:active,.field-btn.copied{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,200,83,.3)}
 
+/* PASSWORD STRENGTH BAR */
+.pw-strength{height:3px;border-radius:2px;margin-top:7px;transition:background .3s,width .3s}
+
+/* SHARE BUTTON in detail */
+.btn-share{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text3);font-size:15px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .15s}
+.btn-share:active{background:var(--surface3);color:var(--text)}
+
 /* TOTP CARD */
 .totp-card{background:var(--accent-dim);border:1px solid rgba(0,200,83,.2);border-radius:11px;padding:14px 16px;margin-bottom:6px}
 .totp-lbl{font-size:10px;font-weight:600;color:rgba(0,200,83,.6);text-transform:uppercase;letter-spacing:.9px;margin-bottom:10px}
@@ -131,6 +148,11 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 /* TOAST */
 #toast{position:fixed;bottom:calc(20px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(70px);background:var(--surface3);border:1px solid var(--border);border-radius:99px;color:var(--text);font-size:13px;font-weight:500;padding:9px 18px;white-space:nowrap;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;z-index:9999;pointer-events:none;max-width:90vw;text-align:center;opacity:0}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* RECENT COPY CHIP */
+#recent-chip{position:fixed;bottom:calc(16px + var(--safe-b));left:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:7px 11px;font-size:11px;color:var(--text2);z-index:800;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;max-width:200px;line-height:1.4}
+#recent-chip.show{opacity:1;transform:translateY(0)}
+#recent-chip strong{color:var(--text);display:block;font-size:12px}
 
 /* LOADING */
 #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .25s}
@@ -171,6 +193,29 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 .linked-chip-cat{font-size:11px;color:var(--text2)}
 #swipe-hint{position:fixed;left:0;top:50%;transform:translateY(-50%);width:4px;height:60px;background:var(--accent);border-radius:0 4px 4px 0;opacity:0;transition:opacity .2s;pointer-events:none;z-index:800}
 #swipe-hint.show{opacity:.5}
+
+/* LANDSCAPE layout */
+@media(orientation:landscape) and (max-height:500px){
+  #screen-main,#screen-detail{flex-direction:row}
+  #screen-main .topbar,#screen-detail .detail-topbar{writing-mode:initial}
+  /* stack topbar above content area on left */
+  #screen-main{flex-direction:column}
+  .entry-list{padding-bottom:8px}
+}
+/* Wide screen (tablet/laptop): side-by-side list + detail */
+@media(min-width:700px){
+  #screen-main,#screen-detail{position:static;display:flex!important;flex-direction:column;height:100dvh}
+  body{display:flex;flex-direction:row;overflow:hidden}
+  #sidebar{width:360px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);height:100dvh}
+  #main-content{flex:1;height:100dvh;display:flex;flex-direction:column;position:relative}
+  .screen{position:static;height:auto;flex:1}
+  #screen-main{height:100%}
+  #screen-detail{height:100%}
+  /* on wide: detail always visible */
+  #screen-detail.active,#screen-detail:not(.active){display:flex!important}
+  .btn-back{display:none}
+  #swipe-hint{display:none}
+}
 </style>
 </head>
 <body>
@@ -178,6 +223,7 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 <div id="loading"><div class="spinner"></div><p id="loading-text">Φόρτωση…</p></div>
 <div id="toast"></div>
 <div id="swipe-hint"></div>
+<div id="recent-chip"><strong id="rc-label"></strong><span id="rc-sub"></span></div>
 
 <!-- REFRESH MODAL -->
 <div class="modal-overlay" id="refresh-modal" onclick="modalBgClick(event,'refresh-modal')">
@@ -274,6 +320,7 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
       <div class="detail-entry-title" id="det-title"></div>
       <div class="detail-entry-cat"   id="det-cat"></div>
     </div>
+    <button class="btn-share" id="det-share-btn" title="Share URL" onclick="shareEntryUrl()">⬆</button>
     <button class="field-btn" id="det-fav-btn" style="font-size:18px" title="Favorite"></button>
   </div>
   <div class="detail-scroll" id="detail-scroll"></div>
@@ -287,32 +334,73 @@ const AUTO_LOCK  = 5 * 60 * 1000;
 const WARN_BEFORE= 60 * 1000;
 const CACHE_KEY  = 'vault_encrypted_cache';
 const SESSION_KEY= 'vault_session';
-const BIO_KEY    = 'bio_master_v2';   // AES-GCM encrypted
-const BIO_DEV_KEY= 'bio_device_key';  // random device encryption key
+const BIO_KEY    = 'bio_master_v2';
+const BIO_DEV_KEY= 'bio_device_key';
 const CAT_ICONS  = {'ALL':'✦','WHM Login':'⚡','Hosting / cPanel':'🖥','WordPress Sites':'🌐','Domains':'🔗','VMs / Servers':'🖧','Services / Proxies':'🔀','Apps & Themes':'🎨','IT Support':'🔧','General':'📁'};
 const AV_COLORS  = ['#1e3a5f','#2d4f3e','#4a2d4f','#3d2d1e','#1e3d4a','#3d3d1e','#4a1e2d','#2d3d4a'];
+const FAVICON_BASE = 'https://www.google.com/s2/favicons?sz=64&domain=';
 
 /* ══ STATE ══ */
-let vaultData=null, allEntries=[], filteredEntries=[], currentCat='ALL';
-let lockTimer=null, warnTimer=null, cdTimer=null;
-let currentEntry=null, googleToken=null;
-// Master password in JS heap only — cleared on lock, never written to any storage
-let _sessionPw=null;
-// Live TOTP intervals
+let vaultData=null,allEntries=[],filteredEntries=[],currentCat='ALL';
+let lockTimer=null,warnTimer=null,cdTimer=null,lockHapticTimer=null;
+let currentEntry=null,googleToken=null,_sessionPw=null;
 const _totpIvs=[];
+let _recentChipTimer=null;
+// Keyboard nav
+let _kbIdx=-1;
 
 /* ══ INIT ══ */
-window.addEventListener('load', async ()=>{
+window.addEventListener('load',async()=>{
   hideLoading();
   const sess=sessionStorage.getItem(SESSION_KEY);
-  if(sess){
-    try{vaultData=JSON.parse(sess);buildEntries();showScreen('screen-main');resetLockTimer();return;}catch(e){}
-  }
+  if(sess){try{vaultData=JSON.parse(sess);buildEntries();showScreen('screen-main');resetLockTimer();_bindKb();return;}catch(e){}}
   if(await hasBiometric()&&localStorage.getItem(BIO_KEY)){showScreen('screen-biometric');return;}
   showScreen('screen-login');
-  const tk=localStorage.getItem('google_token'), exp=parseInt(localStorage.getItem('google_token_expiry')||'0');
+  const tk=localStorage.getItem('google_token'),exp=parseInt(localStorage.getItem('google_token_expiry')||'0');
   if(tk&&Date.now()<exp){googleToken=tk;showPwSection();}
 });
+
+/* ══ KEYBOARD SHORTCUTS ══ */
+function _bindKb(){
+  document.addEventListener('keydown',e=>{
+    if(!vaultData)return;
+    const onMain=document.getElementById('screen-main').classList.contains('active');
+    const onDetail=document.getElementById('screen-detail').classList.contains('active');
+    const searchEl=document.getElementById('search-input');
+    const isInput=document.activeElement&&['INPUT','TEXTAREA'].includes(document.activeElement.tagName);
+
+    // / → focus search (on main screen)
+    if(e.key==='/'&&onMain&&!isInput){e.preventDefault();searchEl.focus();return;}
+    // Escape → back / clear search
+    if(e.key==='Escape'){
+      if(onDetail){goBack();return;}
+      if(searchEl.value){clearSearch();return;}
+    }
+    // Arrow keys → navigate list
+    if((e.key==='ArrowDown'||e.key==='ArrowUp')&&onMain&&!isInput){
+      e.preventDefault();
+      const items=document.querySelectorAll('.entry-item');
+      if(!items.length)return;
+      if(e.key==='ArrowDown')_kbIdx=Math.min(_kbIdx+1,items.length-1);
+      else _kbIdx=Math.max(_kbIdx-1,0);
+      items.forEach((el,i)=>el.style.outline=i===_kbIdx?'2px solid var(--accent)':'');
+      items[_kbIdx].scrollIntoView({block:'nearest'});
+      return;
+    }
+    // Enter → open focused item
+    if(e.key==='Enter'&&onMain&&!isInput&&_kbIdx>=0){
+      const items=document.querySelectorAll('.entry-item');
+      if(items[_kbIdx])items[_kbIdx].click();
+      return;
+    }
+    // C → copy password of focused/current entry
+    if(e.key==='c'&&!isInput){
+      const entry=onDetail?currentEntry?.entry:((_kbIdx>=0&&filteredEntries[_kbIdx])?filteredEntries[_kbIdx].entry:null);
+      if(entry){const pw=getEntryPw(entry);if(pw){copyToClipboard(pw,'Password',entry);}}
+      return;
+    }
+  });
+}
 
 /* ══ GOOGLE AUTH ══ */
 function signInGoogle(){
@@ -349,7 +437,7 @@ async function findVaultFile(){
   const q=encodeURIComponent("name='passwords.vault' and trashed=false");
   const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime+desc&pageSize=10`,
     {headers:{Authorization:'Bearer '+googleToken}});
-  if(!r.ok) throw new Error('Drive API error: '+r.status);
+  if(!r.ok)throw new Error('Drive API error: '+r.status);
   const d=await r.json();
   if(d.files?.length){d.files.sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));return d.files[0];}
   const q2=encodeURIComponent("name contains '.vault' and trashed=false");
@@ -357,20 +445,20 @@ async function findVaultFile(){
     {headers:{Authorization:'Bearer '+googleToken}});
   const d2=await r2.json();
   const vf=(d2.files||[]).filter(f=>f.name.endsWith('.vault'));
-  if(!vf.length) throw new Error('Δεν βρέθηκε vault αρχείο στο Google Drive');
+  if(!vf.length)throw new Error('Δεν βρέθηκε vault αρχείο στο Google Drive');
   vf.sort((a,b)=>new Date(b.modifiedTime)-new Date(a.modifiedTime));return vf[0];
 }
 async function downloadVaultFile(id){
   const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,
     {headers:{Authorization:'Bearer '+googleToken}});
   if(r.status===401){localStorage.removeItem('google_token');localStorage.removeItem('google_token_expiry');googleToken=null;throw new Error('Token έληξε — κάνε ξανά login');}
-  if(!r.ok) throw new Error(`Download failed (${r.status})`);
+  if(!r.ok)throw new Error(`Download failed (${r.status})`);
   const buf=await r.arrayBuffer();
-  if(buf.byteLength<100) throw new Error('Το αρχείο φαίνεται κενό');
+  if(buf.byteLength<100)throw new Error('Το αρχείο φαίνεται κενό');
   return buf;
 }
 
-/* ══ CRYPTO — vault decrypt ══ */
+/* ══ CRYPTO ══ */
 async function deriveKey(pw,salt){
   const enc=new TextEncoder();
   const m=await crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits']);
@@ -386,7 +474,7 @@ async function decryptVault(buf,pw){
   const raw=new Uint8Array(buf),salt=raw.slice(0,16);
   const kb=await deriveKey(pw,salt);
   const fr=b64uDec(new TextDecoder('ascii').decode(raw.slice(16)).trim());
-  if(fr[0]!==0x80) throw new Error('Invalid vault format');
+  if(fr[0]!==0x80)throw new Error('Invalid vault format');
   const iv=fr.slice(9,25),ct=fr.slice(25,fr.length-32);
   const ak=await crypto.subtle.importKey('raw',kb.slice(16),{name:'AES-CBC'},false,['decrypt']);
   let pt;
@@ -396,21 +484,13 @@ async function decryptVault(buf,pw){
   catch(e){throw new Error('Αποκρυπτογράφηση απέτυχε');}
 }
 
-/* ══ BIOMETRIC — AES-GCM encrypted storage ══
-   Device key: random 256-bit AES key in localStorage (base64)
-   Stored password: IV(12) + AES-GCM ciphertext, base64 encoded
-   Much safer than plain btoa — requires knowing the device key to decrypt
-*/
+/* ══ BIOMETRIC ══ */
 async function hasBiometric(){
-  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}
-  catch(e){return false;}
+  try{return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();}catch(e){return false;}
 }
 async function _getDeviceKey(){
   const stored=localStorage.getItem(BIO_DEV_KEY);
-  if(stored){
-    const raw=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));
-    return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt']);
-  }
+  if(stored){const raw=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));return crypto.subtle.importKey('raw',raw,{name:'AES-GCM'},false,['encrypt','decrypt']);}
   const key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']);
   const raw=new Uint8Array(await crypto.subtle.exportKey('raw',key));
   localStorage.setItem(BIO_DEV_KEY,btoa(String.fromCharCode(...raw)));
@@ -428,16 +508,12 @@ async function loadBioPw(){
   const stored=localStorage.getItem(BIO_KEY);if(!stored)return null;
   const key=await _getDeviceKey();
   const blob=Uint8Array.from(atob(stored),c=>c.charCodeAt(0));
-  try{
-    const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:blob.slice(0,12)},key,blob.slice(12));
-    return new TextDecoder().decode(pt);
-  }catch(e){return null;}
+  try{const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:blob.slice(0,12)},key,blob.slice(12));return new TextDecoder().decode(pt);}
+  catch(e){return null;}
 }
 async function doBiometric(){
   try{
-    const ok=await navigator.credentials.get({
-      publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),userVerification:'required',timeout:60000}
-    });
+    const ok=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),userVerification:'required',timeout:60000}});
     if(!ok)throw new Error();
     const pw=await loadBioPw();
     if(!pw){showScreen('screen-login');showPwSection();return;}
@@ -447,7 +523,21 @@ async function doBiometric(){
   }catch(e){showScreen('screen-login');showPwSection();}
 }
 
-/* ══ TOTP — RFC 6238 (HMAC-SHA1) ══ */
+/* ══ PASSWORD STRENGTH ══ */
+function pwStrength(pw){
+  if(!pw||pw.length<4)return{score:0,label:'Πολύ αδύναμο',color:'#e05555'};
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=12)s++;if(pw.length>=16)s++;
+  if(/[A-Z]/.test(pw))s++;if(/[a-z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  if(s<=2)return{score:s,label:'Αδύναμο',color:'#e05555'};
+  if(s<=4)return{score:s,label:'Μέτριο',color:var_warn()};
+  if(s<=5)return{score:s,label:'Καλό',color:'#4caf50'};
+  return{score:s,label:'Ισχυρό',color:'#00c853'};
+}
+function var_warn(){return getComputedStyle(document.documentElement).getPropertyValue('--warn').trim()||'#c49a1a';}
+
+/* ══ TOTP ══ */
 function base32Dec(s){
   const C='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   s=s.toUpperCase().replace(/[\s=]/g,'');
@@ -477,14 +567,11 @@ function makeTotpCard(key,secret){
   const body=document.createElement('div');body.className='totp-body';
   const codeEl=document.createElement('div');codeEl.className='totp-code';codeEl.textContent='------';
   const right=document.createElement('div');right.className='totp-right';
-  // SVG ring
   const R=13,C=2*Math.PI*R;
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('width','32');svg.setAttribute('height','32');svg.setAttribute('viewBox','0 0 32 32');
-  svg.style.transform='rotate(-90deg)';
+  svg.setAttribute('width','32');svg.setAttribute('height','32');svg.setAttribute('viewBox','0 0 32 32');svg.style.transform='rotate(-90deg)';
   const bg=document.createElementNS('http://www.w3.org/2000/svg','circle');
-  bg.setAttribute('cx','16');bg.setAttribute('cy','16');bg.setAttribute('r',R);
-  bg.style.cssText='fill:none;stroke:rgba(0,200,83,.15);stroke-width:3';
+  bg.setAttribute('cx','16');bg.setAttribute('cy','16');bg.setAttribute('r',R);bg.style.cssText='fill:none;stroke:rgba(0,200,83,.15);stroke-width:3';
   const fg=document.createElementNS('http://www.w3.org/2000/svg','circle');
   fg.setAttribute('cx','16');fg.setAttribute('cy','16');fg.setAttribute('r',R);
   fg.style.cssText=`fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-dasharray:${C};transition:stroke-dashoffset .9s linear`;
@@ -493,30 +580,44 @@ function makeTotpCard(key,secret){
   const cpBtn=document.createElement('button');cpBtn.className='totp-copy';cpBtn.title='Copy TOTP';cpBtn.textContent='⎘';
   right.appendChild(svg);right.appendChild(secsEl);right.appendChild(cpBtn);
   body.appendChild(codeEl);body.appendChild(right);card.appendChild(body);
-
   let lastCode=null;
   async function tick(){
     const secs=30-(Math.floor(Date.now()/1000)%30);
     secsEl.textContent=`${secs}s`;
     fg.style.strokeDashoffset=C*(1-secs/30);
     fg.style.stroke=secs<=5?'var(--danger)':'var(--accent)';
-    if(secs===30||lastCode===null){
-      try{lastCode=await genTOTP(secret);codeEl.textContent=lastCode;}catch(e){codeEl.textContent='ERR';}
-    }
+    if(secs===30||lastCode===null){try{lastCode=await genTOTP(secret);codeEl.textContent=lastCode;}catch(e){codeEl.textContent='ERR';}}
     codeEl.style.color=secs<=5?'var(--danger)':'var(--accent)';
   }
   tick();
   const iv=setInterval(tick,1000);_totpIvs.push(iv);
-
   cpBtn.onclick=()=>{
     if(!lastCode)return;
-    navigator.clipboard.writeText(lastCode).then(()=>{
-      cpBtn.textContent='✓';setTimeout(()=>cpBtn.textContent='⎘',1500);
-      showToast('TOTP αντιγράφηκε');haptic('success');
-    });
+    navigator.clipboard.writeText(lastCode).then(()=>{cpBtn.textContent='✓';setTimeout(()=>cpBtn.textContent='⎘',1500);showToast('TOTP αντιγράφηκε');haptic('success');});
     resetLockTimer();
   };
   return card;
+}
+
+/* ══ FAVICON AVATAR ══ */
+function makeFaviconAvatar(entry,av){
+  const el=document.createElement('div');el.className='entry-avatar';
+  el.style.background=av.color;el.style.color='#fff';el.textContent=av.letter;
+  const url=entry.LINK||entry.URL||entry['Public URL']||entry['C PANEL']||'';
+  let domain='';
+  try{if(url)domain=new URL(url).hostname;}catch{}
+  if(!domain){
+    const sub=getSub(entry);
+    if(sub&&sub.includes('.'))domain=sub;
+  }
+  if(domain){
+    const img=document.createElement('img');
+    img.src=FAVICON_BASE+domain;
+    img.alt='';
+    img.onload=()=>{el.textContent='';el.appendChild(img);}; // replace letter with favicon on load
+    img.onerror=()=>{}; // keep letter fallback
+  }
+  return el;
 }
 
 /* ══ UNLOCK ══ */
@@ -541,14 +642,13 @@ async function doUnlock(){
     }
     showLoading('Αποκρυπτογράφηση…');
     vaultData=await decryptVault(buf,pw);
-    _sessionPw=pw; // keep in heap; cleared on lock
+    _sessionPw=pw;
     sessionStorage.setItem(SESSION_KEY,JSON.stringify(vaultData));
-    // Enroll biometric silently if available and not yet enrolled
-    if(await hasBiometric()&&!localStorage.getItem(BIO_KEY)) storeBioPw(pw);
+    if(await hasBiometric()&&!localStorage.getItem(BIO_KEY))storeBioPw(pw);
     buildEntries();setSyncInfo(cacheTime,fromCache);
-    showScreen('screen-main','fade');resetLockTimer();hideLoading();
+    showScreen('screen-main','fade');resetLockTimer();hideLoading();_bindKb();
     document.getElementById('master-pw').value='';
-    if(fromCache) showToast('📴 Offline mode');
+    if(fromCache)showToast('📴 Offline mode');
     haptic('light');
   }catch(e){
     hideLoading();showError(e.message);
@@ -559,7 +659,6 @@ async function doUnlock(){
 /* ══ REFRESH ══ */
 function openRefreshModal(){
   if(!googleToken){showToast('Δεν είσαι συνδεδεμένος με Google');return;}
-  // If we have the password in memory — refresh silently, no modal needed
   if(_sessionPw){doRefreshWith(_sessionPw);return;}
   document.getElementById('refresh-modal').classList.add('open');
   setTimeout(()=>document.getElementById('refresh-pw').focus(),300);
@@ -597,9 +696,7 @@ function buildEntries(){
   }
   buildCatTabs();filterEntries();
 }
-function getCats(){
-  return Object.keys(vaultData?.categories||{}).filter(k=>vaultData.categories[k]&&typeof vaultData.categories[k]==='object');
-}
+function getCats(){return Object.keys(vaultData?.categories||{}).filter(k=>vaultData.categories[k]&&typeof vaultData.categories[k]==='object');}
 function buildCatTabs(){
   const scroll=document.getElementById('cat-scroll');scroll.innerHTML='';
   for(const cat of['ALL',...getCats()]){
@@ -608,7 +705,7 @@ function buildCatTabs(){
     const p=document.createElement('div');p.className='cat-pill'+(cat===currentCat?' active':'');
     const icon=CAT_ICONS[cat]||'📂';
     p.innerHTML=`${icon} ${cat==='ALL'?'Όλα':cat} <span class="pcount">${count}</span>`;
-    p.onclick=()=>{currentCat=cat;buildCatTabs();filterEntries();haptic('selection');};
+    p.onclick=()=>{currentCat=cat;_kbIdx=-1;buildCatTabs();filterEntries();haptic('selection');};
     scroll.appendChild(p);
   }
 }
@@ -637,17 +734,18 @@ function getEntryPw(e){
   return Object.entries(e).find(([k,v])=>{const kl=k.toLowerCase();return kl.includes('pass')&&!kl.includes('mfa')&&!kl.includes('totp')&&v;})?.[1]||null;
 }
 function getEntryUser(e){return e.Username||e.User||e.USER||e.USER1||e['Owner Email']||e.Email||null;}
+function getEntryUrl(e){return e.LINK||e.URL||e['Public URL']||null;}
 
 /* ══ SEARCH ══ */
 function onSearchInput(){
   const v=document.getElementById('search-input').value;
   document.getElementById('search-clear').classList.toggle('visible',!!v);
-  filterEntries();
+  _kbIdx=-1;filterEntries();
 }
 function clearSearch(){
   document.getElementById('search-input').value='';
   document.getElementById('search-clear').classList.remove('visible');
-  filterEntries();document.getElementById('search-input').focus();
+  _kbIdx=-1;filterEntries();document.getElementById('search-input').focus();
 }
 function filterEntries(){
   const q=(document.getElementById('search-input').value||'').toLowerCase().trim();
@@ -673,43 +771,94 @@ function renderList(q=''){
   }
   const useGroups=!q&&currentCat==='ALL'&&sorted.length>10;
   let lastG='';
-  for(const {entry:e,cat,sub} of sorted){
+  sorted.forEach(({entry:e,cat,sub},idx)=>{
     const title=getTitle(e),sub_=getSub(e),isFav=!!e._favorite,av=getAv(title);
     const pw=getEntryPw(e),user=getEntryUser(e);
     if(useGroups){
       const g=isFav?'★':title[0]?.toUpperCase()||'#';
-      if(g!==lastG){
-        const h=document.createElement('div');h.className='list-shdr';
-        h.textContent=isFav?'★ Αγαπημένα':g;list.appendChild(h);lastG=g;
-      }
+      if(g!==lastG){const h=document.createElement('div');h.className='list-shdr';h.textContent=isFav?'★ Αγαπημένα':g;list.appendChild(h);lastG=g;}
     }
+
+    // Wrap for swipe actions
+    const wrap=document.createElement('div');wrap.className='entry-wrap';
+
+    // Swipe-left actions background
+    const swipeActs=document.createElement('div');swipeActs.className='entry-swipe-actions';
+    const favBtn2=document.createElement('button');favBtn2.className='swipe-btn fav';
+    favBtn2.innerHTML=`${isFav?'★':'☆'}<span>${isFav?'Unfav':'Fav'}</span>`;
+    favBtn2.onclick=ev=>{ev.stopPropagation();e._favorite=!e._favorite;haptic('selection');renderList(q);};
+    const cpBtn2=document.createElement('button');cpBtn2.className='swipe-btn copy';
+    cpBtn2.innerHTML=`⎘<span>Copy</span>`;
+    cpBtn2.onclick=ev=>{ev.stopPropagation();if(pw){copyToClipboard(pw,'Password',e);}resetSwipe(wrap);};
+    swipeActs.appendChild(favBtn2);swipeActs.appendChild(cpBtn2);
+    wrap.appendChild(swipeActs);
+
     const item=document.createElement('div');item.className='entry-item';
-    const ava=document.createElement('div');ava.className='entry-avatar';
-    ava.style.background=av.color;ava.style.color='#fff';ava.textContent=av.letter;
+    const ava=makeFaviconAvatar(e,av);
     const info=document.createElement('div');info.className='entry-info';
     const tEl=document.createElement('div');tEl.className='entry-title';tEl.textContent=title;info.appendChild(tEl);
     if(sub_){const s=document.createElement('div');s.className='entry-sub';s.textContent=sub_;info.appendChild(s);}
     const acts=document.createElement('div');acts.className='entry-actions';
     if(isFav){const f=document.createElement('span');f.className='badge-fav';f.textContent='★';acts.appendChild(f);}
-    // Quick copy user
     if(user){
       const ub=document.createElement('button');ub.className='qcopy';ub.title='Copy username';ub.textContent='👤';
-      ub.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(user),'Username');resetLockTimer();};
+      ub.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(user),'Username',e);resetLockTimer();};
       acts.appendChild(ub);
     }
-    // Quick copy password
     if(pw){
       const pb=document.createElement('button');pb.className='qcopy';pb.title='Copy password';pb.textContent='⎘';
-      pb.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(pw),'Password');resetLockTimer();};
+      pb.onclick=ev=>{ev.stopPropagation();copyToClipboard(String(pw),'Password',e);resetLockTimer();};
       acts.appendChild(pb);
     }
     item.appendChild(ava);item.appendChild(info);item.appendChild(acts);
-    item.onclick=()=>{openEntry(e,cat,sub);haptic('light');};
-    list.appendChild(item);
-  }
+    item.onclick=()=>{if(Math.abs(_swipeX(item))>5)return;openEntry(e,cat,sub);haptic('light');};
+    wrap.appendChild(item);
+    list.appendChild(wrap);
+
+    // Swipe-left gesture on this item
+    _attachSwipe(wrap,item);
+  });
 }
 
-/* ══ DETAIL VIEW — 100% createElement, no innerHTML injection ══ */
+/* ══ SWIPE-LEFT ON ENTRY (reveal actions) ══ */
+let _activeSwipeWrap=null;
+function resetSwipe(wrap){
+  if(!wrap)return;
+  wrap.querySelector('.entry-item').style.transform='';
+  _activeSwipeWrap=null;
+}
+function _swipeX(el){
+  const t=el.style.transform;
+  const m=t.match(/translateX\((-?[\d.]+)/);
+  return m?parseFloat(m[1]):0;
+}
+function _attachSwipe(wrap,item){
+  let sx=0,sy=0,dragging=false,startedSwipe=false;
+  item.addEventListener('touchstart',e=>{
+    // close any other open swipe
+    if(_activeSwipeWrap&&_activeSwipeWrap!==wrap){resetSwipe(_activeSwipeWrap);}
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;dragging=true;startedSwipe=false;
+  },{passive:true});
+  item.addEventListener('touchmove',e=>{
+    if(!dragging)return;
+    const dx=e.touches[0].clientX-sx,dy=Math.abs(e.touches[0].clientY-sy);
+    if(!startedSwipe&&dy>10){dragging=false;return;} // vertical scroll wins
+    if(Math.abs(dx)>5)startedSwipe=true;
+    if(!startedSwipe)return;
+    const swActsW=112; // 2 × 56px buttons
+    const newX=Math.max(-swActsW,Math.min(0,dx+_swipeX(item)));
+    item.style.transform=`translateX(${newX}px)`;
+    if(newX<-10)_activeSwipeWrap=wrap;
+  },{passive:true});
+  item.addEventListener('touchend',e=>{
+    if(!dragging)return;dragging=false;
+    const x=_swipeX(item);
+    if(x<-56){item.style.transform='translateX(-112px)';}// snap open
+    else{item.style.transform='';_activeSwipeWrap=null;} // snap closed
+  },{passive:true});
+}
+
+/* ══ DETAIL VIEW ══ */
 function openEntry(entry,cat,sub){
   currentEntry={entry,cat,sub};resetLockTimer();
   while(_totpIvs.length)clearInterval(_totpIvs.pop());
@@ -717,6 +866,10 @@ function openEntry(entry,cat,sub){
   document.getElementById('det-cat').textContent=sub?`${cat}  ›  ${sub}`:cat;
   const fb=document.getElementById('det-fav-btn');
   fb.textContent=entry._favorite?'★':'☆';fb.style.color=entry._favorite?'#f0c040':'';
+  // Share button — only show if there's a URL
+  const shareBtn=document.getElementById('det-share-btn');
+  shareBtn.style.display=getEntryUrl(entry)?'flex':'none';
+
   const scroll=document.getElementById('detail-scroll');scroll.innerHTML='';
   const isPwK=k=>{const kl=k.toLowerCase();return(kl.includes('pass')||kl.includes('secret'))&&!isMfaKey(k);};
   const skipSet=new Set(['_uid','_favorite','_pinned','_tags','_linked','_client','_client_cat','_favorite_ts','_pinned_ts','Notes','Tags']);
@@ -725,7 +878,6 @@ function openEntry(entry,cat,sub){
   const ordK=[...fo.filter(k=>allK.includes(k)),...allK.filter(k=>!fo.includes(k))];
   for(const key of ordK){
     const val=entry[key];const vs=val!=null?String(val):'';if(!vs.trim())continue;
-    // TOTP
     if(isMfaKey(key)&&isBase32(vs)){scroll.appendChild(makeTotpCard(key,vs.trim().replace(/\s/g,'').toUpperCase()));continue;}
     const isUrl=key==='URL'||key==='LINK'||vs.startsWith('http');
     const isPw=isPwK(key);
@@ -736,23 +888,16 @@ function openEntry(entry,cat,sub){
     es.appendChild(mkEl('div','es-icon','📭'));es.appendChild(mkEl('p','','Δεν υπάρχουν πεδία'));
     scroll.appendChild(es);showScreen('screen-detail','slide');return;
   }
-  // Tags
   const tags=entry._tags||(entry.Tags?String(entry.Tags).split(',').map(t=>t.trim()).filter(Boolean):[]);
-  if(tags.length){const c=mkCard('Tags');const r=mkEl('div','tag-row');tags.forEach(t=>{const s=mkEl('span','tag',t);r.appendChild(s);});c.appendChild(r);scroll.appendChild(c);}
-  // Notes
-  if(entry.Notes?.trim()){const c=mkCard('Notes');const n=mkEl('div','notes-val',entry.Notes);c.appendChild(n);scroll.appendChild(c);}
-  // Client
+  if(tags.length){const c=mkCard('Tags');const r=mkEl('div','tag-row');tags.forEach(t=>{r.appendChild(mkEl('span','tag',t));});c.appendChild(r);scroll.appendChild(c);}
+  if(entry.Notes?.trim()){const c=mkCard('Notes');c.appendChild(mkEl('div','notes-val',entry.Notes));scroll.appendChild(c);}
   if(entry._client?.trim()){const c=mkCard('👤 Client');c.appendChild(mkEl('div','field-value',entry._client));scroll.appendChild(c);}
-  // Linked
   const res=(entry._linked||[]).map(uid=>allEntries.find(({entry:e})=>e._uid===uid)).filter(Boolean);
   if(res.length){
     const c=mkCard('🔗 Συνδεδεμένες');const r=mkEl('div','linked-row');
     res.forEach(({entry:le,cat:lc})=>{
-      const ch=mkEl('div','linked-chip');
-      ch.appendChild(mkEl('span','',CAT_ICONS[lc]||'🔑'));
-      const d=document.createElement('div');
-      d.appendChild(mkEl('div','linked-chip-title',getTitle(le)));
-      d.appendChild(mkEl('div','linked-chip-cat',lc));
+      const ch=mkEl('div','linked-chip');ch.appendChild(mkEl('span','',CAT_ICONS[lc]||'🔑'));
+      const d=document.createElement('div');d.appendChild(mkEl('div','linked-chip-title',getTitle(le)));d.appendChild(mkEl('div','linked-chip-cat',lc));
       ch.appendChild(d);ch.onclick=()=>openEntry(le,lc);r.appendChild(ch);
     });
     c.appendChild(r);scroll.appendChild(c);
@@ -760,26 +905,26 @@ function openEntry(entry,cat,sub){
   showScreen('screen-detail','slide');scroll.scrollTop=0;
 }
 
-/* DOM helpers — no innerHTML */
-function mkEl(tag,cls,text){
-  const e=document.createElement(tag);
-  if(cls)e.className=cls;
-  if(text!==undefined)e.textContent=text;
-  return e;
+/* ══ SHARE URL ══ */
+function shareEntryUrl(){
+  if(!currentEntry)return;
+  const url=getEntryUrl(currentEntry.entry);
+  if(!url){showToast('Δεν υπάρχει URL');return;}
+  const title=getTitle(currentEntry.entry);
+  if(navigator.share){navigator.share({title,url}).catch(()=>{});}
+  else{navigator.clipboard.writeText(url).then(()=>showToast('URL αντιγράφηκε'));}
+  resetLockTimer();
 }
-function mkCard(labelText){
-  const c=mkEl('div','field-card');
-  c.appendChild(mkEl('div','field-label',labelText));
-  return c;
-}
+
+/* DOM helpers */
+function mkEl(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;}
+function mkCard(labelText){const c=mkEl('div','field-card');c.appendChild(mkEl('div','field-label',labelText));return c;}
 function mkFieldCard(key,val,isUrl,isPw){
-  const card=mkCard(key);
-  const row=mkEl('div','field-row');
+  const card=mkCard(key);const row=mkEl('div','field-row');
   if(isUrl){
-    const a=document.createElement('a');
-    a.className='field-value url-val';a.href=val;a.target='_blank';a.rel='noopener';a.textContent=val;
+    const a=document.createElement('a');a.className='field-value url-val';a.href=val;a.target='_blank';a.rel='noopener';a.textContent=val;
     a.addEventListener('click',()=>resetLockTimer());
-    row.appendChild(a);row.appendChild(mkCopyBtn(val,key));
+    row.appendChild(a);row.appendChild(mkCopyBtn(val,key,null));
   }else if(isPw){
     const vEl=mkEl('div','field-value masked');vEl.textContent='••••••••';
     const eyeBtn=mkEl('button','field-btn','👁');eyeBtn.title='Εμφάνιση';
@@ -789,53 +934,75 @@ function mkFieldCard(key,val,isUrl,isPw){
       else{vEl.textContent=val;vEl.classList.remove('masked');eyeBtn.textContent='🙈';}
       resetLockTimer();
     };
-    row.appendChild(vEl);row.appendChild(eyeBtn);row.appendChild(mkCopyBtn(val,key));
+    row.appendChild(vEl);row.appendChild(eyeBtn);row.appendChild(mkCopyBtn(val,key,null));
+    // Password strength bar
+    const str=pwStrength(val);
+    const bar=document.createElement('div');bar.className='pw-strength';
+    const pct=Math.min(100,Math.round((str.score/7)*100));
+    bar.style.cssText=`background:${str.color};width:${pct}%`;
+    bar.title=`${str.label} (${pct}%)`;
+    card.appendChild(row);card.appendChild(bar);return card;
   }else{
-    const vEl=mkEl('div','field-value',val);
-    row.appendChild(vEl);row.appendChild(mkCopyBtn(val,key));
+    row.appendChild(mkEl('div','field-value',val));row.appendChild(mkCopyBtn(val,key,null));
   }
   card.appendChild(row);return card;
 }
-function mkCopyBtn(val,label){
+function mkCopyBtn(val,label,entry){
   const b=mkEl('button','field-btn','⎘');b.title='Copy';
-  b.onclick=()=>{copyToClipboard(val,label);resetLockTimer();};
+  b.onclick=()=>{copyToClipboard(val,label,entry||currentEntry?.entry||null);resetLockTimer();};
   return b;
 }
 
-/* ══ CLIPBOARD ══ */
-function copyToClipboard(val,label){
+/* ══ CLIPBOARD + RECENT COPY CHIP ══ */
+function copyToClipboard(val,label,entry){
   navigator.clipboard.writeText(val).then(()=>{
     showToast(`${label} αντιγράφηκε`);haptic('success');
+    showRecentChip(label,entry?getTitle(entry):'');
   }).catch(()=>showToast('Σφάλμα αντιγραφής'));
+}
+function showRecentChip(label,entryTitle){
+  const chip=document.getElementById('recent-chip');
+  document.getElementById('rc-label').textContent=`📋 ${label}`;
+  document.getElementById('rc-sub').textContent=entryTitle?` · ${entryTitle}`:'';
+  chip.classList.add('show');
+  clearTimeout(_recentChipTimer);
+  _recentChipTimer=setTimeout(()=>chip.classList.remove('show'),30000);
 }
 
 function goBack(){while(_totpIvs.length)clearInterval(_totpIvs.pop());showScreen('screen-main','back');resetLockTimer();}
 
-/* ══ AUTO-LOCK ══ */
+/* ══ AUTO-LOCK with haptic warning ══ */
 function resetLockTimer(){
-  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);
+  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);clearInterval(lockHapticTimer);
   document.getElementById('lock-banner').classList.remove('show');
   warnTimer=setTimeout(()=>{
     let s=Math.round(WARN_BEFORE/1000);
     const cdEl=document.getElementById('lock-cd');
     cdEl.textContent=`${s}s`;document.getElementById('lock-banner').classList.add('show');
     cdTimer=setInterval(()=>{s--;cdEl.textContent=`${s}s`;if(s<=0)clearInterval(cdTimer);},1000);
+    // Haptic pulse every 2s during last 10s
+    lockHapticTimer=setInterval(()=>{
+      const remaining=parseInt(document.getElementById('lock-cd').textContent)||0;
+      if(remaining<=10&&remaining>0)haptic('selection');
+      else if(remaining<=0)clearInterval(lockHapticTimer);
+    },2000);
   },AUTO_LOCK-WARN_BEFORE);
   lockTimer=setTimeout(lockVault,AUTO_LOCK);
 }
 function lockVault(){
-  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);
+  clearTimeout(lockTimer);clearTimeout(warnTimer);clearInterval(cdTimer);clearInterval(lockHapticTimer);
   while(_totpIvs.length)clearInterval(_totpIvs.pop());
   document.getElementById('lock-banner').classList.remove('show');
+  document.getElementById('recent-chip').classList.remove('show');
   vaultData=null;allEntries=[];_sessionPw=null;
-  sessionStorage.removeItem(SESSION_KEY);currentEntry=null;
+  sessionStorage.removeItem(SESSION_KEY);currentEntry=null;_kbIdx=-1;
   if(localStorage.getItem(BIO_KEY)&&googleToken)showScreen('screen-biometric');
   else{showScreen('screen-login');if(googleToken)showPwSection();}
   showToast('🔒 Vault κλειδώθηκε');
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&vaultData)resetLockTimer();});
 
-/* ══ SWIPE-BACK ══ */
+/* ══ SWIPE-BACK (detail → main) ══ */
 (function(){
   let sx=0,sy=0,sw=false,det=null;
   document.addEventListener('touchstart',e=>{
@@ -865,14 +1032,17 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&vaultData)
   const list=document.getElementById('entry-list'),ind=document.getElementById('ptr-indicator');
   list.addEventListener('touchstart',e=>{if(list.scrollTop===0){sy=e.touches[0].clientY;pulling=true;}},{passive:true});
   list.addEventListener('touchmove',e=>{
-    if(!pulling)return;
-    const dy=e.touches[0].clientY-sy;
+    if(!pulling)return;const dy=e.touches[0].clientY-sy;
     if(dy>10&&dy<80){ind.style.height=dy+'px';ind.style.opacity=Math.min(1,dy/50);}
   },{passive:true});
   list.addEventListener('touchend',e=>{
     const dy=e.changedTouches[0].clientY-sy;
     ind.style.height='0';ind.style.opacity='0';
     if(dy>60&&pulling)openRefreshModal();pulling=false;
+  },{passive:true});
+  // Close any open swipe when tapping outside
+  list.addEventListener('touchstart',e=>{
+    if(_activeSwipeWrap&&!_activeSwipeWrap.contains(e.target))resetSwipe(_activeSwipeWrap);
   },{passive:true});
 })();
 
@@ -908,30 +1078,17 @@ function setSyncInfo(time,offline){
   document.getElementById('vault-sync-txt').textContent=`Sync: ${txt}`;
   document.getElementById('vault-info-row').style.display='flex';
 }
-function fmtDate(dt){
-  return dt.toLocaleDateString('el',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'});
-}
+function fmtDate(dt){return dt.toLocaleDateString('el',{day:'numeric',month:'short'})+' '+dt.toLocaleTimeString('el',{hour:'2-digit',minute:'2-digit'});}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function modalBgClick(e,id){if(e.target===document.getElementById(id))closeModal(id);}
 function toggleFPw(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function ab2b64(buf){
-  const b=new Uint8Array(buf);let s='';const ch=8192;
-  for(let i=0;i<b.length;i+=ch)s+=String.fromCharCode(...b.subarray(i,i+ch));return btoa(s);
-}
-function b642ab(b64){
-  const bin=atob(b64),a=new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a.buffer;
-}
-
+function ab2b64(buf){const b=new Uint8Array(buf);let s='';const ch=8192;for(let i=0;i<b.length;i+=ch)s+=String.fromCharCode(...b.subarray(i,i+ch));return btoa(s);}
+function b642ab(b64){const bin=atob(b64),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a.buffer;}
 let _toastTimer;
-function showToast(m){
-  const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');
-  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
-}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
 ['touchstart','click'].forEach(ev=>document.addEventListener(ev,()=>{if(vaultData)resetLockTimer();},{passive:true}));
 </script>
-
 <script>
 if('serviceWorker' in navigator)
   window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
