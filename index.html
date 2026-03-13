@@ -194,28 +194,7 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 #swipe-hint{position:fixed;left:0;top:50%;transform:translateY(-50%);width:4px;height:60px;background:var(--accent);border-radius:0 4px 4px 0;opacity:0;transition:opacity .2s;pointer-events:none;z-index:800}
 #swipe-hint.show{opacity:.5}
 
-/* LANDSCAPE layout */
-@media(orientation:landscape) and (max-height:500px){
-  #screen-main,#screen-detail{flex-direction:row}
-  #screen-main .topbar,#screen-detail .detail-topbar{writing-mode:initial}
-  /* stack topbar above content area on left */
-  #screen-main{flex-direction:column}
-  .entry-list{padding-bottom:8px}
-}
-/* Wide screen (tablet/laptop): side-by-side list + detail */
-@media(min-width:700px){
-  #screen-main,#screen-detail{position:static;display:flex!important;flex-direction:column;height:100dvh}
-  body{display:flex;flex-direction:row;overflow:hidden}
-  #sidebar{width:360px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);height:100dvh}
-  #main-content{flex:1;height:100dvh;display:flex;flex-direction:column;position:relative}
-  .screen{position:static;height:auto;flex:1}
-  #screen-main{height:100%}
-  #screen-detail{height:100%}
-  /* on wide: detail always visible */
-  #screen-detail.active,#screen-detail:not(.active){display:flex!important}
-  .btn-back{display:none}
-  #swipe-hint{display:none}
-}
+
 </style>
 </head>
 <body>
