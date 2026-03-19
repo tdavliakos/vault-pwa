@@ -150,9 +150,14 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
 /* RECENT COPY CHIP */
-#recent-chip{position:fixed;bottom:calc(16px + var(--safe-b));left:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:7px 11px;font-size:11px;color:var(--text2);z-index:800;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;max-width:200px;line-height:1.4}
+#recent-chip{position:fixed;bottom:calc(16px + var(--safe-b));left:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:7px 11px;font-size:11px;color:var(--text2);z-index:800;pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;max-width:240px;line-height:1.4;cursor:pointer}
 #recent-chip.show{opacity:1;transform:translateY(0)}
 #recent-chip strong{color:var(--text);display:block;font-size:12px}
+
+
+/* WAKE LOCK indicator */
+#wake-dot{position:fixed;top:calc(8px + var(--safe-t));right:12px;width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:0;transition:opacity .4s;pointer-events:none;z-index:9000}
+#wake-dot.on{opacity:.7}
 
 /* LOADING */
 #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .25s}
@@ -202,7 +207,8 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 <div id="loading"><div class="spinner"></div><p id="loading-text">Φόρτωση…</p></div>
 <div id="toast"></div>
 <div id="swipe-hint"></div>
-<div id="recent-chip"><strong id="rc-label"></strong><span id="rc-sub"></span></div>
+<div id="wake-dot" title="Η οθόνη παραμένει ενεργή"></div>
+<div id="recent-chip" onclick="_clearClipNow()"><strong id="rc-label"></strong><span id="rc-sub"></span><span id="rc-cd"></span></div>
 
 <!-- REFRESH MODAL -->
 <div class="modal-overlay" id="refresh-modal" onclick="modalBgClick(event,'refresh-modal')">
@@ -882,6 +888,7 @@ function openEntry(entry,cat,sub){
     c.appendChild(r);scroll.appendChild(c);
   }
   showScreen('screen-detail','slide');scroll.scrollTop=0;
+  acquireWakeLock();
 }
 
 /* ══ SHARE URL ══ */
@@ -922,7 +929,11 @@ function mkFieldCard(key,val,isUrl,isPw){
     bar.title=`${str.label} (${pct}%)`;
     card.appendChild(row);card.appendChild(bar);return card;
   }else{
-    row.appendChild(mkEl('div','field-value',val));row.appendChild(mkCopyBtn(val,key,null));
+    const vTap=mkEl('div','field-value',val);
+    vTap.style.cssText='cursor:pointer;-webkit-tap-highlight-color:rgba(0,200,83,.15)';
+    vTap.title='Tap για αντιγραφή';
+    vTap.onclick=()=>{copyToClipboard(val,key,currentEntry?.entry||null);resetLockTimer();};
+    row.appendChild(vTap);row.appendChild(mkCopyBtn(val,key,null));
   }
   card.appendChild(row);return card;
 }
@@ -933,22 +944,47 @@ function mkCopyBtn(val,label,entry){
 }
 
 /* ══ CLIPBOARD + RECENT COPY CHIP ══ */
+const CLIP_TTL=30; // seconds before clipboard auto-clear
+let _clipCdInterval=null;
+
 function copyToClipboard(val,label,entry){
   navigator.clipboard.writeText(val).then(()=>{
     showToast(`${label} αντιγράφηκε`);haptic('success');
-    showRecentChip(label,entry?getTitle(entry):'');
+    showRecentChip(label,entry?getTitle(entry):'',val);
   }).catch(()=>showToast('Σφάλμα αντιγραφής'));
 }
-function showRecentChip(label,entryTitle){
+function _clearClipNow(){
+  navigator.clipboard.writeText('').catch(()=>{});
+  clearInterval(_clipCdInterval);
+  const chip=document.getElementById('recent-chip');
+  chip.classList.remove('show');
+  showToast('🗑 Clipboard καθαρίστηκε');
+}
+function showRecentChip(label,entryTitle,val){
   const chip=document.getElementById('recent-chip');
   document.getElementById('rc-label').textContent=`📋 ${label}`;
   document.getElementById('rc-sub').textContent=entryTitle?` · ${entryTitle}`:'';
   chip.classList.add('show');
   clearTimeout(_recentChipTimer);
-  _recentChipTimer=setTimeout(()=>chip.classList.remove('show'),30000);
+  clearInterval(_clipCdInterval);
+  // countdown
+  let secs=CLIP_TTL;
+  const cdEl=document.getElementById('rc-cd');
+  cdEl.textContent=` · 🗑 ${secs}s`;
+  _clipCdInterval=setInterval(()=>{
+    secs--;
+    if(secs<=0){
+      clearInterval(_clipCdInterval);
+      navigator.clipboard.writeText('').catch(()=>{});
+      chip.classList.remove('show');
+    } else {
+      cdEl.textContent=` · 🗑 ${secs}s`;
+    }
+  },1000);
+  _recentChipTimer=setTimeout(()=>chip.classList.remove('show'),CLIP_TTL*1000+200);
 }
 
-function goBack(){while(_totpIvs.length)clearInterval(_totpIvs.pop());showScreen('screen-main','back');resetLockTimer();}
+function goBack(){while(_totpIvs.length)clearInterval(_totpIvs.pop());releaseWakeLock();showScreen('screen-main','back');resetLockTimer();}
 
 /* ══ AUTO-LOCK with haptic warning ══ */
 function resetLockTimer(){
@@ -973,7 +1009,7 @@ function lockVault(){
   while(_totpIvs.length)clearInterval(_totpIvs.pop());
   document.getElementById('lock-banner').classList.remove('show');
   document.getElementById('recent-chip').classList.remove('show');
-  vaultData=null;allEntries=[];_sessionPw=null;
+  releaseWakeLock();vaultData=null;allEntries=[];_sessionPw=null;
   sessionStorage.removeItem(SESSION_KEY);currentEntry=null;_kbIdx=-1;
   if(localStorage.getItem(BIO_KEY)&&googleToken)showScreen('screen-biometric');
   else{showScreen('screen-login');if(googleToken)showPwSection();}
@@ -1066,6 +1102,55 @@ function ab2b64(buf){const b=new Uint8Array(buf);let s='';const ch=8192;for(let 
 function b642ab(b64){const bin=atob(b64),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a.buffer;}
 let _toastTimer;
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),2400);}
+/* ══ WAKE LOCK ══ */
+let _wakeLock=null;
+async function acquireWakeLock(){
+  if(!('wakeLock' in navigator))return;
+  try{
+    _wakeLock=await navigator.wakeLock.request('screen');
+    document.getElementById('wake-dot').classList.add('on');
+    _wakeLock.addEventListener('release',()=>{
+      document.getElementById('wake-dot').classList.remove('on');
+      _wakeLock=null;
+    });
+  }catch(e){}
+}
+function releaseWakeLock(){
+  if(_wakeLock){_wakeLock.release();_wakeLock=null;}
+  document.getElementById('wake-dot').classList.remove('on');
+}
+// Re-acquire after visibility change (OS can release it)
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&_wakeLock===null&&
+     document.getElementById('screen-detail').classList.contains('active'))
+    acquireWakeLock();
+});
+
+/* ══ MANIFEST SHORTCUTS ══ */
+(function handleShortcut(){
+  const p=new URLSearchParams(location.search);
+  const action=p.get('action');
+  if(!action)return;
+  history.replaceState(null,'',location.pathname);
+  if(action==='search'){
+    // After vault unlocks, focus search
+    const _origBuild=window.buildEntries;
+    window.buildEntries=function(){_origBuild();setTimeout(()=>{
+      const s=document.getElementById('search-input');
+      if(s&&document.getElementById('screen-main').classList.contains('active'))s.focus();
+    },300);window.buildEntries=_origBuild;};
+  }
+  if(action==='copylast'){
+    const _origBuild=window.buildEntries;
+    window.buildEntries=function(){
+      _origBuild();
+      const last=allEntries[0];
+      if(last){const pw=getEntryPw(last.entry);if(pw)copyToClipboard(pw,'Password',last.entry);}
+      window.buildEntries=_origBuild;
+    };
+  }
+})();
+
 ['touchstart','click'].forEach(ev=>document.addEventListener(ev,()=>{if(vaultData)resetLockTimer();},{passive:true}));
 </script>
 <script>
