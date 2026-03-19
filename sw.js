@@ -4,7 +4,7 @@
 //   Google APIs: network-only (never cache auth tokens or drive data)
 //   Everything else: network-first with cache fallback
 
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE   = 'vault-' + VERSION;
 const STATIC  = [
   './',

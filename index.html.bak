@@ -12,57 +12,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-
-/* THEME */
-:root{--bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;--accent:#00c853;--accent-dim:#0a2a14;--accent-glow:rgba(0,200,83,.12);--text:#eeeeee;--text2:#aaaaaa;--text3:#888888;--border:#2a2a2a;--border-soft:#1e1e1e;--danger:#e05555;--warn:#c49a1a;--radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px)}
-[data-theme="light"]{--bg:#f5f5f5;--surface:#ffffff;--surface2:#eeeeee;--surface3:#e0e0e0;--accent:#00a844;--accent-dim:#e8f5e9;--text:#111111;--text2:#444444;--text3:#777777;--border:#cccccc;--border-soft:#dddddd}
-
-/* SCREENSHOT PROTECTION — blur sensitive fields when app hidden */
-.screen-hidden .field-value:not(.url-val){filter:blur(8px);transition:filter .2s}
-
-/* PIN SCREEN */
-#screen-pin{align-items:center;justify-content:center;padding:40px 24px;background:var(--bg)}
-.pin-title{font-size:20px;font-weight:600;margin-bottom:6px}
-.pin-sub{font-size:13px;color:var(--text2);margin-bottom:32px;text-align:center}
-.pin-dots{display:flex;gap:14px;margin-bottom:32px}
-.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--text3);transition:all .15s}
-.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
-.pin-dot.error{background:var(--danger);border-color:var(--danger)}
-.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px}
-.pin-btn{height:72px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--text);font-size:22px;font-weight:500;cursor:pointer;font-family:var(--mono);transition:all .1s;display:flex;align-items:center;justify-content:center}
-.pin-btn:active{background:var(--surface3);transform:scale(.94)}
-.pin-btn.accent{color:var(--accent);border-color:rgba(0,200,83,.3)}
-.pin-alt{background:none;border:none;color:var(--text3);font-size:13px;font-family:var(--sans);cursor:pointer;margin-top:18px;text-decoration:underline}
-
-/* RECENTLY VIEWED bar */
-#recent-bar{padding:6px 12px 0;flex-shrink:0}
-.recent-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
-.recent-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:6px}
-.recent-row::-webkit-scrollbar{display:none}
-.recent-pill{background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:11px;color:var(--text2);white-space:nowrap;cursor:pointer;flex-shrink:0;transition:all .15s}
-.recent-pill:active{background:var(--surface3);color:var(--text)}
-
-/* SEARCH HIGHLIGHT */
-mark{background:rgba(0,200,83,.22);color:inherit;border-radius:2px;padding:0 1px}
-
-/* THEME TOGGLE btn */
-#btn-theme{font-size:16px}
-
-/* QUICK COPY pills on entry row */
-.qcopy-pw{background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text3);font-size:11px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-.qcopy-pw:active{background:var(--accent-dim);color:var(--accent)}
-
-/* PASSWORD GENERATOR modal */
-#gen-modal .modal-sheet{max-height:85vh;overflow-y:auto}
-.gen-result{font-family:var(--mono);font-size:17px;font-weight:500;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;word-break:break-all;line-height:1.5;margin-bottom:10px;cursor:pointer}
-.gen-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
-.gen-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer}
-.gen-opt input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
-.gen-len-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.gen-len-row label{font-size:13px;color:var(--text2);min-width:80px}
-.gen-len-row input[type=range]{flex:1}
-.gen-len-row span{font-size:13px;font-family:var(--mono);min-width:24px;text-align:right}
-
+:root{
+  --bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--surface3:#222222;
+  --accent:#00c853;--accent-dim:#0a2a14;--accent-glow:rgba(0,200,83,.12);
+  --text:#eeeeee;--text2:#aaaaaa;--text3:#888888;
+  --border:#2a2a2a;--border-soft:#1e1e1e;
+  --danger:#e05555;--warn:#c49a1a;
+  --radius:14px;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 html,body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;user-select:none;overscroll-behavior:none}
 .screen{display:none;flex-direction:column;height:100dvh;position:absolute;inset:0;will-change:transform,opacity}
@@ -272,59 +230,6 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
   </div>
 </div>
 
-
-<!-- PIN UNLOCK -->
-<div class="screen" id="screen-pin">
-  <div class="pin-title">PIN Ξεκλείδωμα</div>
-  <div class="pin-sub">Εισάγετε 4ψήφιο PIN</div>
-  <div class="pin-dots" id="pin-dots">
-    <div class="pin-dot" id="pd0"></div>
-    <div class="pin-dot" id="pd1"></div>
-    <div class="pin-dot" id="pd2"></div>
-    <div class="pin-dot" id="pd3"></div>
-  </div>
-  <div class="pin-pad">
-    <button class="pin-btn" onclick="pinKey('1')">1</button>
-    <button class="pin-btn" onclick="pinKey('2')">2</button>
-    <button class="pin-btn" onclick="pinKey('3')">3</button>
-    <button class="pin-btn" onclick="pinKey('4')">4</button>
-    <button class="pin-btn" onclick="pinKey('5')">5</button>
-    <button class="pin-btn" onclick="pinKey('6')">6</button>
-    <button class="pin-btn" onclick="pinKey('7')">7</button>
-    <button class="pin-btn" onclick="pinKey('8')">8</button>
-    <button class="pin-btn" onclick="pinKey('9')">9</button>
-    <button class="pin-btn" onclick="pinKey('clear')" style="font-size:13px;color:var(--text3)">CLR</button>
-    <button class="pin-btn" onclick="pinKey('0')">0</button>
-    <button class="pin-btn accent" onclick="pinKey('del')">⌫</button>
-  </div>
-  <button class="pin-alt" onclick="showScreen('screen-login');showPwSection()">Χρήση Master Password</button>
-</div>
-
-<!-- PASSWORD GENERATOR -->
-<div class="modal-overlay" id="gen-modal" onclick="modalBgClick(event,'gen-modal')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">🎲 Password Generator</div>
-    <div class="gen-len-row">
-      <label>Μήκος</label>
-      <input type="range" id="gen-len" min="8" max="32" value="16" oninput="genPw()">
-      <span id="gen-len-val">16</span>
-    </div>
-    <div class="gen-options">
-      <label class="gen-opt"><input type="checkbox" id="gen-upper" checked onchange="genPw()"> A–Z</label>
-      <label class="gen-opt"><input type="checkbox" id="gen-lower" checked onchange="genPw()"> a–z</label>
-      <label class="gen-opt"><input type="checkbox" id="gen-num" checked onchange="genPw()"> 0–9</label>
-      <label class="gen-opt"><input type="checkbox" id="gen-sym" checked onchange="genPw()"> !@#$%</label>
-    </div>
-    <div class="gen-result" id="gen-result" onclick="copyGenPw()" title="Tap για αντιγραφή"></div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('gen-modal')">Κλείσιμο</button>
-      <button class="btn-primary" onclick="genPw()">🔄 Νέο</button>
-      <button class="btn-primary" style="background:var(--accent)" onclick="copyGenPw()">⎘ Copy</button>
-    </div>
-  </div>
-</div>
-
 <!-- LOGIN -->
 <div class="screen" id="screen-login">
   <div class="login-logo">🔐</div>
@@ -379,10 +284,8 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
              autocapitalize="off" spellcheck="false">
       <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
     </div>
-    <button class="topbar-btn" onclick="openGenModal()" title="Password Generator">🎲</button>
     <button class="topbar-btn" id="btn-refresh" onclick="openRefreshModal()" title="Ανανέωση">🔄</button>
     <button class="topbar-btn" onclick="lockVault()" title="Κλείδωμα">🔒</button>
-    <button class="topbar-btn" id="btn-theme" onclick="toggleTheme()" title="Θέμα">☀️</button>
   </div>
   <div id="lock-banner">⏱ Αυτόματο κλείδωμα σε <span id="lock-cd"></span></div>
   <div class="vault-info-row" id="vault-info-row" style="display:none">
@@ -390,7 +293,6 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
     <span class="vault-sync-txt" id="vault-sync-txt"></span>
   </div>
   <div class="cat-scroll" id="cat-scroll"></div>
-  <div id="recent-bar" style="display:none"><div class="recent-label">Πρόσφατα</div><div class="recent-row" id="recent-row"></div></div>
   <div id="ptr-indicator">↑ Τράβα για ανανέωση</div>
   <div class="entry-list" id="entry-list"></div>
 </div>
@@ -437,7 +339,6 @@ window.addEventListener('load',async()=>{
   hideLoading();
   const sess=sessionStorage.getItem(SESSION_KEY);
   if(sess){try{vaultData=JSON.parse(sess);buildEntries();showScreen('screen-main');resetLockTimer();_bindKb();return;}catch(e){}}
-  if(await hasPin()){showScreen('screen-pin');return;}
   if(await hasBiometric()&&localStorage.getItem(BIO_KEY)){showScreen('screen-biometric');return;}
   showScreen('screen-login');
   const tk=localStorage.getItem('google_token'),exp=parseInt(localStorage.getItem('google_token_expiry')||'0');
@@ -731,7 +632,6 @@ async function doUnlock(){
     if(await hasBiometric()&&!localStorage.getItem(BIO_KEY))storeBioPw(pw);
     buildEntries();setSyncInfo(cacheTime,fromCache);
     showScreen('screen-main','fade');resetLockTimer();hideLoading();_bindKb();
-    if(!localStorage.getItem(PIN_KEY))setupPin(pw);
     document.getElementById('master-pw').value='';
     if(fromCache)showToast('📴 Offline mode');
     haptic('light');
@@ -779,7 +679,7 @@ function buildEntries(){
     for(const [sub,se] of Object.entries(info.subcategories||{}))
       if(Array.isArray(se))for(const e of se)if(e&&hasRC(e))allEntries.push({entry:e,cat,sub});
   }
-  buildCatTabs();filterEntries();renderRecentBar();checkExpiryAlerts();
+  buildCatTabs();filterEntries();
 }
 function getCats(){return Object.keys(vaultData?.categories||{}).filter(k=>vaultData.categories[k]&&typeof vaultData.categories[k]==='object');}
 function buildCatTabs(){
@@ -881,7 +781,7 @@ function renderList(q=''){
     const item=document.createElement('div');item.className='entry-item';
     const ava=makeFaviconAvatar(e,av);
     const info=document.createElement('div');info.className='entry-info';
-    const tEl=document.createElement('div');tEl.className='entry-title';tEl.innerHTML=highlightText(title,q);info.appendChild(tEl);
+    const tEl=document.createElement('div');tEl.className='entry-title';tEl.textContent=title;info.appendChild(tEl);
     if(sub_){const s=document.createElement('div');s.className='entry-sub';s.textContent=sub_;info.appendChild(s);}
     const acts=document.createElement('div');acts.className='entry-actions';
     if(isFav){const f=document.createElement('span');f.className='badge-fav';f.textContent='★';acts.appendChild(f);}
@@ -946,7 +846,6 @@ function _attachSwipe(wrap,item){
 /* ══ DETAIL VIEW ══ */
 function openEntry(entry,cat,sub){
   currentEntry={entry,cat,sub};resetLockTimer();
-  if(entry._uid)addRecent(entry._uid,getTitle(entry),cat);
   while(_totpIvs.length)clearInterval(_totpIvs.pop());
   document.getElementById('det-title').textContent=getTitle(entry);
   document.getElementById('det-cat').textContent=sub?`${cat}  ›  ${sub}`:cat;
@@ -1161,191 +1060,6 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&vaultData)
     if(_activeSwipeWrap&&!_activeSwipeWrap.contains(e.target))resetSwipe(_activeSwipeWrap);
   },{passive:true});
 })();
-
-/* ══ THEME TOGGLE ══ */
-function toggleTheme(){
-  const cur=document.documentElement.getAttribute('data-theme')||'dark';
-  const next=cur==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('vault_theme',next);
-  document.getElementById('btn-theme').textContent=next==='dark'?'☀️':'🌙';
-}
-(function initTheme(){
-  const t=localStorage.getItem('vault_theme')||
-    (matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');
-  document.documentElement.setAttribute('data-theme',t);
-  window.addEventListener('load',()=>{
-    const b=document.getElementById('btn-theme');
-    if(b)b.textContent=t==='dark'?'☀️':'🌙';
-  });
-})();
-
-/* ══ SCREENSHOT PROTECTION ══ */
-document.addEventListener('visibilitychange',()=>{
-  document.querySelectorAll('.screen').forEach(s=>
-    s.classList.toggle('screen-hidden', document.hidden));
-});
-
-/* ══ PIN UNLOCK ══ */
-const PIN_KEY='vault_pin_v1';
-let _pinBuf='';
-let _pinEncPw=null;
-
-async function _pinEncrypt(data){
-  const k=await _getDeviceKey();
-  const iv=crypto.getRandomValues(new Uint8Array(12));
-  const enc=await crypto.subtle.encrypt({name:'AES-GCM',iv},k,new TextEncoder().encode(data));
-  const blob=new Uint8Array(12+enc.byteLength);blob.set(iv);blob.set(new Uint8Array(enc),12);
-  return btoa(String.fromCharCode(...blob));
-}
-async function _pinDecrypt(b64){
-  const k=await _getDeviceKey();
-  const blob=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
-  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:blob.slice(0,12)},k,blob.slice(12));
-  return new TextDecoder().decode(pt);
-}
-async function setupPin(pw){
-  const pin=prompt('Ορίστε 4ψήφιο PIN (ή Cancel για παράλειψη):');
-  if(!pin||pin.length!==4||!/^\d{4}$/.test(pin))return;
-  const blob=JSON.stringify({pin,pw});
-  localStorage.setItem(PIN_KEY,await _pinEncrypt(blob));
-  showToast('✅ PIN ορίστηκε');
-}
-async function hasPin(){return !!localStorage.getItem(PIN_KEY);}
-async function getPinPw(pin){
-  const b64=localStorage.getItem(PIN_KEY);if(!b64)return null;
-  try{const d=JSON.parse(await _pinDecrypt(b64));return d.pin===pin?d.pw:null;}
-  catch(e){return null;}
-}
-function pinKey(k){
-  if(k==='clear'){_pinBuf='';_renderPinDots();}
-  else if(k==='del'){_pinBuf=_pinBuf.slice(0,-1);_renderPinDots();}
-  else if(_pinBuf.length<4){
-    _pinBuf+=k;_renderPinDots();haptic('selection');
-    if(_pinBuf.length===4)setTimeout(_submitPin,120);
-  }
-}
-function _renderPinDots(err){
-  for(let i=0;i<4;i++){
-    const d=document.getElementById('pd'+i);
-    d.classList.toggle('filled',i<_pinBuf.length);
-    d.classList.toggle('error',!!err);
-  }
-}
-async function _submitPin(){
-  const pw=await getPinPw(_pinBuf);
-  if(!pw){
-    _renderPinDots(true);haptic('error');
-    setTimeout(()=>{_pinBuf='';_renderPinDots();},700);
-    return;
-  }
-  _pinBuf='';_renderPinDots();
-  // Unlock with retrieved pw
-  document.getElementById('master-pw').value=pw;
-  await doUnlock();
-}
-
-/* ══ RECENTLY VIEWED ══ */
-const RECENT_KEY='vault_recent';
-const RECENT_MAX=6;
-function addRecent(entryUid,title,cat){
-  let arr=[];try{arr=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');}catch{}
-  arr=arr.filter(r=>r.uid!==entryUid);
-  arr.unshift({uid:entryUid,title,cat,ts:Date.now()});
-  arr=arr.slice(0,RECENT_MAX);
-  localStorage.setItem(RECENT_KEY,JSON.stringify(arr));
-}
-function renderRecentBar(){
-  let arr=[];try{arr=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');}catch{}
-  const bar=document.getElementById('recent-bar');
-  const row=document.getElementById('recent-row');
-  if(!arr.length||!vaultData){bar.style.display='none';return;}
-  // Filter to entries still existing
-  const valid=arr.filter(r=>allEntries.find(e=>e.entry._uid===r.uid));
-  if(!valid.length){bar.style.display='none';return;}
-  bar.style.display='block';
-  row.innerHTML='';
-  valid.forEach(r=>{
-    const pill=document.createElement('div');pill.className='recent-pill';
-    pill.textContent=r.title;
-    pill.onclick=()=>{
-      const found=allEntries.find(e=>e.entry._uid===r.uid);
-      if(found)openEntry(found.entry,found.cat,found.sub);
-    };
-    row.appendChild(pill);
-  });
-}
-
-/* ══ SEARCH HIGHLIGHT ══ */
-function highlightText(text,q){
-  if(!q)return escHtml(text);
-  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
-  return escHtml(text).replace(re,'<mark>$1</mark>');
-}
-
-/* ══ PASSWORD GENERATOR ══ */
-function openGenModal(){
-  genPw();
-  document.getElementById('gen-modal').classList.add('open');
-}
-function genPw(){
-  const len=parseInt(document.getElementById('gen-len').value);
-  document.getElementById('gen-len-val').textContent=len;
-  let chars='';
-  if(document.getElementById('gen-upper').checked)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  if(document.getElementById('gen-lower').checked)chars+='abcdefghijklmnopqrstuvwxyz';
-  if(document.getElementById('gen-num').checked)chars+='0123456789';
-  if(document.getElementById('gen-sym').checked)chars+='!@#$%^&*-_=+?';
-  if(!chars)chars='abcdefghijklmnopqrstuvwxyz';
-  const arr=new Uint32Array(len);crypto.getRandomValues(arr);
-  const pw=Array.from(arr,v=>chars[v%chars.length]).join('');
-  document.getElementById('gen-result').textContent=pw;
-}
-function copyGenPw(){
-  const pw=document.getElementById('gen-result').textContent;
-  if(!pw)return;
-  copyToClipboard(pw,'Generated PW',null);
-  closeModal('gen-modal');
-}
-
-/* ══ EXPIRY ALERTS (on unlock) ══ */
-function checkExpiryAlerts(){
-  if(!vaultData||!('Notification' in window))return;
-  const today=new Date();
-  const soon=[];
-  for(const [cat,info] of Object.entries(vaultData.categories||{})){
-    for(const e of (info.entries||[])){
-      for(const [k,v] of Object.entries(e)){
-        if(k.startsWith('_')||!v)continue;
-        const kl=k.toLowerCase();
-        if(!kl.includes('expir')&&!kl.includes('ανανέωση')&&!kl.includes('ανανεωση'))continue;
-        const fmts=['%Y-%m-%d','%d/%m/%Y','%d-%m-%Y'];
-        let d=null;
-        const s=String(v).trim();
-        // try parse
-        const m1=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-        const m2=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-        if(m1)d=new Date(m1[1],m1[2]-1,m1[3]);
-        else if(m2)d=new Date(m2[3],m2[2]-1,m2[1]);
-        if(!d)continue;
-        const days=Math.round((d-today)/(1000*60*60*24));
-        if(days>=0&&days<=30)soon.push({title:getTitle(e),cat,days,field:k});
-      }
-    }
-  }
-  if(!soon.length)return;
-  const msg=soon.slice(0,3).map(x=>`${x.title}: ${x.days===0?'ΣΗΜΕΡΑ':x.days+'μ'}`).join(', ');
-  const extra=soon.length>3?` +${soon.length-3} ακόμα`:'';
-  if(Notification.permission==='granted'){
-    new Notification('⏳ Vault — Λήξεις',{body:msg+extra,icon:'./icon-192.png'});
-  } else if(Notification.permission!=='denied'){
-    Notification.requestPermission().then(p=>{
-      if(p==='granted')new Notification('⏳ Vault — Λήξεις',{body:msg+extra,icon:'./icon-192.png'});
-    });
-  }
-  // Also show in-app toast
-  showToast('⏳ '+soon.length+' λήξεις σύντομα');
-}
 
 /* ══ HAPTIC ══ */
 function haptic(t){
