@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a0a0a">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Vault">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Vault">
 <title>Vault</title>
@@ -488,11 +490,45 @@ function _bindKb(){
 
 /* ══ GOOGLE AUTH ══ */
 function signInGoogle(){
-  location.href='https://accounts.google.com/o/oauth2/v2/auth?'+new URLSearchParams(
-    {client_id:CLIENT_ID,redirect_uri:location.origin+location.pathname,response_type:'token',scope:SCOPE,prompt:'select_account'});
+  // Build redirect_uri carefully — GitHub Pages needs exact match
+  // Remove trailing slash, always use index.html path
+  let base = location.origin + location.pathname;
+  if(base.endsWith('/')) base = base.slice(0,-1);
+  // If path ends with index.html, keep it; otherwise add it
+  if(!base.endsWith('index.html')) base = base.replace(/\/?$/, '/index.html');
+  const params = new URLSearchParams({
+    client_id: CLIENT_ID,
+    redirect_uri: base,
+    response_type: 'token',
+    scope: SCOPE,
+    prompt: 'select_account',
+    // include_granted_scopes helps on Android re-auth
+    include_granted_scopes: 'true'
+  });
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params;
 }
 (function handleOAuth(){
   const h=new URLSearchParams(location.hash.slice(1));
+  // Also check for error param (e.g. redirect_uri_mismatch)
+  const err = h.get('error');
+  if(err){
+    console.error('OAuth error:', err, h.get('error_description'));
+    // Show friendly message instead of silent fail
+    setTimeout(()=>{
+      const el = document.getElementById('gdrive-section');
+      if(el){
+        let errDiv = document.getElementById('oauth-error-msg');
+        if(!errDiv){
+          errDiv = document.createElement('p');
+          errDiv.id = 'oauth-error-msg';
+          errDiv.style.cssText = 'color:#e05555;font-size:13px;margin:8px 0;text-align:center';
+          el.appendChild(errDiv);
+        }
+        errDiv.textContent = 'Google login error: ' + err + (err==='redirect_uri_mismatch'?' — Check Google Console authorized URIs':'');
+      }
+    }, 200);
+    return;
+  }
   if(!h.get('access_token'))return;
   googleToken=h.get('access_token');
   const exp=Date.now()+parseInt(h.get('expires_in')||'3600')*1000;
