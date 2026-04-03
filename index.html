@@ -274,6 +274,42 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
   </div>
 </div>
 
+<!-- CHANGE MASTER PASSWORD MODAL -->
+<div class="modal-overlay" id="change-pw-modal" onclick="modalBgClick(event,'change-pw-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔑 Αλλαγή Master Password</div>
+    <div class="input-group">
+      <label class="input-label">Τρέχον Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="chpw-current" placeholder="Τρέχον password" autocomplete="current-password" onkeydown="if(event.key==='Enter')document.getElementById('chpw-new').focus()">
+        <button class="pw-toggle" onclick="toggleFPw('chpw-current')">👁</button>
+      </div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Νέο Master Password</label>
+      <div class="input-wrap">
+        <input type="password" id="chpw-new" placeholder="Νέο password" autocomplete="new-password" oninput="updateChangePwStrength()" onkeydown="if(event.key==='Enter')document.getElementById('chpw-confirm').focus()">
+        <button class="pw-toggle" onclick="toggleFPw('chpw-new')">👁</button>
+      </div>
+      <div id="chpw-strength-text" style="font-size:12px;color:var(--text3);margin-top:8px">Χρησιμοποίησε ισχυρό password.</div>
+      <div class="pw-strength" id="chpw-strength-bar" style="width:0;background:var(--danger)"></div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Επιβεβαίωση Νέου Password</label>
+      <div class="input-wrap">
+        <input type="password" id="chpw-confirm" placeholder="Επανάληψη νέου password" autocomplete="new-password" onkeydown="if(event.key==='Enter')changeMasterPassword()">
+        <button class="pw-toggle" onclick="toggleFPw('chpw-confirm')">👁</button>
+      </div>
+    </div>
+    <div class="login-error" id="change-pw-error" style="display:none;margin-top:0"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeChangePwModal()">Ακύρωση</button>
+      <button class="btn-primary" id="btn-change-pw" onclick="changeMasterPassword()">Αλλαγή</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- PIN UNLOCK -->
 <div class="screen" id="screen-pin">
@@ -383,6 +419,7 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
     </div>
     <button class="topbar-btn" onclick="openGenModal()" title="Password Generator">🎲</button>
     <button class="topbar-btn" id="btn-refresh" onclick="openRefreshModal()" title="Ανανέωση">🔄</button>
+    <button class="topbar-btn" id="btn-change-master" onclick="openChangePwModal()" title="Αλλαγή master password">🔑</button>
     <button class="topbar-btn" onclick="lockVault()" title="Κλείδωμα">🔒</button>
     <button class="topbar-btn" id="btn-theme" onclick="toggleTheme()" title="Θέμα">☀️</button>
   </div>
@@ -414,7 +451,7 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
 <script>
 /* ══ CONFIG ══ */
 const CLIENT_ID  = '342666465731-ra1slcsblprck74jvur2gs31fc7hueud.apps.googleusercontent.com';
-const SCOPE      = 'https://www.googleapis.com/auth/drive.readonly';
+const SCOPE      = 'https://www.googleapis.com/auth/drive';
 const AUTO_LOCK  = 5 * 60 * 1000;
 const WARN_BEFORE= 60 * 1000;
 const CACHE_KEY  = 'vault_encrypted_cache';
@@ -602,6 +639,46 @@ async function decryptVault(buf,pw){
   catch(e){throw new Error('Λάθος master password — έλεγξε Caps Lock');}
   try{return JSON.parse(new TextDecoder('utf-8').decode(pt));}
   catch(e){throw new Error('Αποκρυπτογράφηση απέτυχε');}
+}
+function b64uEnc(bytes){
+  let s=''; const chunk=8192;
+  for(let i=0;i<bytes.length;i+=chunk)s+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function concatBytes(...arrays){
+  const total=arrays.reduce((n,a)=>n+a.length,0);
+  const out=new Uint8Array(total);
+  let off=0;
+  for(const a of arrays){out.set(a,off);off+=a.length;}
+  return out;
+}
+function pkcs7Pad(bytes, blockSize=16){
+  const rem = bytes.length % blockSize;
+  const pad = rem === 0 ? blockSize : (blockSize - rem);
+  const out = new Uint8Array(bytes.length + pad);
+  out.set(bytes,0);
+  out.fill(pad, bytes.length);
+  return out;
+}
+async function encryptVaultData(data,pw){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const kb=await deriveKey(pw,salt);
+  const signingKey=kb.slice(0,16);
+  const encKey=kb.slice(16);
+  const iv=crypto.getRandomValues(new Uint8Array(16));
+  const jsonBytes=new TextEncoder().encode(JSON.stringify(data));
+  const padded=pkcs7Pad(jsonBytes,16);
+  const aesKey=await crypto.subtle.importKey('raw',encKey,{name:'AES-CBC'},false,['encrypt']);
+  const cipher=new Uint8Array(await crypto.subtle.encrypt({name:'AES-CBC',iv},aesKey,padded));
+  const ts=Math.floor(Date.now()/1000);
+  const tsBytes=new Uint8Array(8);
+  let n=ts; for(let i=7;i>=0;i--){tsBytes[i]=n&255; n=Math.floor(n/256);}
+  const body=concatBytes(new Uint8Array([0x80]), tsBytes, iv, cipher);
+  const hmacKey=await crypto.subtle.importKey('raw',signingKey,{name:'HMAC', hash:'SHA-256'},false,['sign']);
+  const mac=new Uint8Array(await crypto.subtle.sign('HMAC',hmacKey,body));
+  const token=b64uEnc(concatBytes(body,mac));
+  const tokenBytes=new TextEncoder().encode(token);
+  return concatBytes(salt, tokenBytes).buffer;
 }
 
 /* ══ BIOMETRIC ══ */
@@ -804,6 +881,77 @@ async function doRefreshWith(pw){
     hideLoading();showToast(`✓ Ανανεώθηκε · ${fmtDate(new Date(file.modifiedTime))}`);haptic('success');
   }catch(e){hideLoading();showToast('❌ '+e.message);haptic('error');}
   finally{btn.textContent='🔄';btn.disabled=false;}
+}
+
+function openChangePwModal(){
+  if(!vaultData){showToast('Άνοιξε πρώτα το vault');return;}
+  if(!googleToken){showToast('Χρειάζεται Google sign-in');return;}
+  hideChangePwError();
+  document.getElementById('change-pw-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('chpw-current').focus(),220);
+}
+function closeChangePwModal(){
+  document.getElementById('change-pw-modal').classList.remove('open');
+  ['chpw-current','chpw-new','chpw-confirm'].forEach(id=>document.getElementById(id).value='');
+  updateChangePwStrength();
+  hideChangePwError();
+}
+function showChangePwError(msg){
+  const el=document.getElementById('change-pw-error'); el.textContent=msg; el.style.display='block';
+}
+function hideChangePwError(){
+  const el=document.getElementById('change-pw-error'); el.textContent=''; el.style.display='none';
+}
+function updateChangePwStrength(){
+  const pw=document.getElementById('chpw-new')?.value||'';
+  const s=pwStrength(pw);
+  const bar=document.getElementById('chpw-strength-bar');
+  const txt=document.getElementById('chpw-strength-text');
+  const pct=Math.max(0,Math.min(100,(s.score/7)*100));
+  if(bar){bar.style.width=pct+'%'; bar.style.background=s.color||'var(--danger)';}
+  if(txt){txt.textContent=pw?('Ισχύς: '+s.label):'Χρησιμοποίησε ισχυρό password.'; txt.style.color=s.color||'var(--text3)';}
+}
+async function changeMasterPassword(){
+  const current=document.getElementById('chpw-current').value;
+  const next=document.getElementById('chpw-new').value;
+  const confirm=document.getElementById('chpw-confirm').value;
+  hideChangePwError();
+  if(!current||!next||!confirm){showChangePwError('Συμπλήρωσε όλα τα πεδία.');return;}
+  try{
+    const cached=localStorage.getItem(CACHE_KEY);
+    if(cached) await decryptVault(b642ab(cached), current);
+    else if(_sessionPw && current!==_sessionPw) throw new Error();
+  }catch(_e){showChangePwError('Το τρέχον master password δεν είναι σωστό.');return;}
+  if(next!==confirm){showChangePwError('Το νέο password και η επιβεβαίωση δεν ταιριάζουν.');return;}
+  if(next.length<6){showChangePwError('Το νέο password πρέπει να έχει τουλάχιστον 6 χαρακτήρες.');return;}
+  if(next===current){showChangePwError('Το νέο password πρέπει να είναι διαφορετικό.');return;}
+  const btn=document.getElementById('btn-change-pw');
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='Αποθήκευση…';
+  showLoading('Αλλαγή master password…');
+  try{
+    const file=await findVaultFile();
+    const payload=await encryptVaultData(vaultData,next);
+    await uploadVaultFile(file.id,payload);
+    localStorage.setItem(CACHE_KEY, ab2b64(payload));
+    localStorage.setItem(CACHE_KEY+'_time', new Date().toISOString());
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(vaultData));
+    _sessionPw=next;
+    document.getElementById('master-pw').value='';
+    if(await hasBiometric()) await storeBioPw(next);
+    closeChangePwModal();
+    hideLoading();
+    showToast(localStorage.getItem(PIN_KEY)?'✓ Άλλαξε το master password · το PIN χρειάζεται επαναρύθμιση':'✓ Το master password άλλαξε');
+    haptic('success');
+  }catch(e){
+    hideLoading();
+    showChangePwError(e.message||'Η αλλαγή απέτυχε.');
+    haptic('error');
+  }finally{
+    btn.disabled=false;
+    btn.textContent=oldText;
+  }
 }
 
 /* ══ DATA ══ */

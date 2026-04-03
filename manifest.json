@@ -1,7 +1,7 @@
 {
   "name": "Vault Password Manager",
   "short_name": "Vault",
-  "description": "Secure password vault — view only",
+  "description": "Secure password vault",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
