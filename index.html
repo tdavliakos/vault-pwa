@@ -875,6 +875,16 @@ function updateChangePwStrength(){
   bar.style.width=(pw?map:0)+'%';
   bar.style.background=pw?s.color:'var(--danger)';
 }
+function bytesToB64(bytes){
+  let s='';
+  const ch=8192;
+  for(let i=0;i<bytes.length;i+=ch) s+=String.fromCharCode(...bytes.subarray(i,i+ch));
+  return btoa(s);
+}
+function bytesToB64Url(bytes){
+  return bytesToB64(bytes).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+
 async function encryptVaultData(data,pw){
   const salt=crypto.getRandomValues(new Uint8Array(16));
   const kb=await deriveKey(pw,salt);
@@ -899,7 +909,7 @@ async function encryptVaultData(data,pw){
   const mac=new Uint8Array(await crypto.subtle.sign('HMAC',hkey,body));
   const token=new Uint8Array(body.length+mac.length);
   token.set(body,0); token.set(mac,body.length);
-  const b64=btoa(String.fromCharCode(...token)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const b64=bytesToB64Url(token);
   const out=new Uint8Array(salt.length+b64.length);
   out.set(salt,0);
   out.set(new TextEncoder().encode(b64),salt.length);
