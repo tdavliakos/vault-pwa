@@ -279,12 +279,13 @@ input::placeholder{color:var(--text3);font-family:var(--sans)}
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div class="modal-title">🔑 Αλλαγή Master Password</div>
-    <div class="input-group">
+    <div class="input-group" id="chpw-current-group">
       <label class="input-label">Τρέχον Master Password</label>
       <div class="input-wrap">
         <input type="password" id="chpw-current" placeholder="Τρέχον password" autocomplete="current-password" onkeydown="if(event.key==='Enter')document.getElementById('chpw-new').focus()">
         <button class="pw-toggle" onclick="toggleFPw('chpw-current')">👁</button>
       </div>
+      <div id="chpw-current-help" style="font-size:12px;color:var(--text3);margin-top:8px;display:none">Το τρέχον password έχει φορτωθεί από το ενεργό session. Μπορείς να το αφήσεις κενό.</div>
     </div>
     <div class="input-group">
       <label class="input-label">Νέο Master Password</label>
@@ -887,8 +888,21 @@ function openChangePwModal(){
   if(!vaultData){showToast('Άνοιξε πρώτα το vault');return;}
   if(!googleToken){showToast('Χρειάζεται Google sign-in');return;}
   hideChangePwError();
+  const currentInput=document.getElementById('chpw-current');
+  const currentGroup=document.getElementById('chpw-current-group');
+  const currentHelp=document.getElementById('chpw-current-help');
+  if(_sessionPw){
+    currentInput.value='';
+    currentInput.placeholder='Μπορεί να μείνει κενό';
+    currentGroup.style.opacity='0.82';
+    currentHelp.style.display='block';
+  }else{
+    currentInput.placeholder='Τρέχον password';
+    currentGroup.style.opacity='1';
+    currentHelp.style.display='none';
+  }
   document.getElementById('change-pw-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('chpw-current').focus(),220);
+  setTimeout(()=>((_sessionPw?document.getElementById('chpw-new'):currentInput).focus()),220);
 }
 function closeChangePwModal(){
   document.getElementById('change-pw-modal').classList.remove('open');
@@ -912,11 +926,13 @@ function updateChangePwStrength(){
   if(txt){txt.textContent=pw?('Ισχύς: '+s.label):'Χρησιμοποίησε ισχυρό password.'; txt.style.color=s.color||'var(--text3)';}
 }
 async function changeMasterPassword(){
-  const current=document.getElementById('chpw-current').value;
+  const typedCurrent=document.getElementById('chpw-current').value;
+  const current=typedCurrent || _sessionPw || '';
   const next=document.getElementById('chpw-new').value;
   const confirm=document.getElementById('chpw-confirm').value;
   hideChangePwError();
-  if(!current||!next||!confirm){showChangePwError('Συμπλήρωσε όλα τα πεδία.');return;}
+  if(!next||!confirm){showChangePwError('Συμπλήρωσε το νέο password και την επιβεβαίωση.');return;}
+  if(!current){showChangePwError('Δεν υπάρχει διαθέσιμο το τρέχον password στο session. Βάλ’ το χειροκίνητα.');return;}
   try{
     const cached=localStorage.getItem(CACHE_KEY);
     if(cached) await decryptVault(b642ab(cached), current);
